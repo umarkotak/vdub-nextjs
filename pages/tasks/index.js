@@ -1,7 +1,9 @@
-import vdubAPI from "@/apis/vdubAPI"
-import { Eye, LayoutTemplate, Plus } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+
+import { Eye, LayoutTemplate, Plus } from "lucide-react"
+
+import vdubAPI from "@/apis/vdubAPI"
 
 export default function TaskList() {
 
@@ -42,9 +44,9 @@ export default function TaskList() {
         <Link href="/tasks/new" className="btn btn-sm btn-primary btn-outline"><Plus size={14} /> New Task</Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {taskList.map((oneTask)=>(
-          <div key={oneTask.name} className="flex flex-col rounded-lg overflow-hidden w-full bg-white">
+          <div key={oneTask.name} className="flex flex-col rounded-lg overflow-hidden w-full bg-white shadow-sm">
             <div className="w-full">
               <div className="w-full relative">
                 <img src="https://placehold.co/200x200" className="w-full h-[200]" />
@@ -54,8 +56,8 @@ export default function TaskList() {
               </div>
             </div>
             <div className="w-full p-2 tracking-wide">
-              <p className="text-sm font-bold">{oneTask.name}</p>
-              <p className="text-sm mt-1 mb-[-10px]">{oneTask.status}</p>
+              <p className="text-sm font-bold break-all">{oneTask.name}</p>
+              <p className="text-sm mt-1 mb-[-10px] break-all">{oneTask.status}</p>
               <progress className="progress progress-primary w-full" value={parseInt(oneTask.progress_summary)} max="10"></progress>
 
               <div className="flex justify-end mt-8">

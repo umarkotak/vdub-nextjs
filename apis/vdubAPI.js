@@ -31,6 +31,10 @@ class VdubAPI {
     return this.Get(`/vdub/api/dubb/tasks`, authToken, h, params)
   }
 
+  async PostTaskCreate(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/start`, authToken, h, params)
+  }
+
   async Get(path, authToken, h, params) {
     var uri = `${this.VdubHost}${path}?${new URLSearchParams(params)}`
     const response = await fetch(uri, {
