@@ -1,4 +1,4 @@
-export default function Projects() {
+export default function TaskDetail() {
   return (
     <main
       className="flex min-h-screen flex-col items-center justify-between p-24"

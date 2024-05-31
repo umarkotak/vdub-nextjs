@@ -43,9 +43,9 @@ export default function Layout({ children }) {
               </li>
               <li>
                 <Link
-                  className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/projects")}`}
-                  href="/projects"
-                ><LayoutTemplate size={14} /> Projects</Link>
+                  className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/tasks")}`}
+                  href="/tasks"
+                ><LayoutTemplate size={14} /> Tasks</Link>
               </li>
             </ul>
           </div>
@@ -91,14 +91,17 @@ export default function Layout({ children }) {
         <label htmlFor="my-drawer-3" aria-label="close sidebar" className="drawer-overlay"></label>
         <ul className="menu p-4 w-80 min-h-full bg-base-200">
           {/* Sidebar content here */}
-          <li className={`${genActive(pathname, "/")}`}>
-            <Link className='hover:bg-yellow-300' href="/"><Home size={14} /> Home</Link>
+          <li>
+            <Link
+              className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/")}`}
+              href="/"
+            ><Home size={14}/> Home</Link>
           </li>
-          <li className={`${genActive(pathname, "/experience")}`}>
-            <Link className='hover:bg-yellow-300' href="/experience"><Briefcase size={14} /> Experience</Link>
-          </li>
-          <li className={`${genActive(pathname, "/projects")}`}>
-            <Link className='hover:bg-yellow-300' href="/projects"><LayoutTemplate size={14} /> Products</Link>
+          <li>
+            <Link
+              className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/tasks")}`}
+              href="/tasks"
+            ><LayoutTemplate size={14} /> Tasks</Link>
           </li>
         </ul>
       </div>
