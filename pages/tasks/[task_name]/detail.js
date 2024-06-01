@@ -2,7 +2,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 
-import { Check, Eye, LayoutTemplate, Plus, Trash } from "lucide-react"
+import { Check, Circle, Download, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
 
 import vdubAPI from "@/apis/vdubAPI"
@@ -34,6 +34,33 @@ export default function TaskDetail() {
     } catch (e) { console.error(e) }
   }
 
+  function OnChangeTranscriptVal(idx, v) {
+    var tmpArr = [...transcriptTranslated]
+    tmpArr[idx] = transcriptTranslated[idx]
+
+    tmpArr[idx].value = v
+
+    setTranscriptTranslated(tmpArr)
+  }
+
+  function OnChangeTranscriptStart(idx, v) {
+    var tmpArr = [...transcriptTranslated]
+    tmpArr[idx] = transcriptTranslated[idx]
+
+    tmpArr[idx].start_at = v
+
+    setTranscriptTranslated(tmpArr)
+  }
+
+  function OnChangeTranscriptEnd(idx, v) {
+    var tmpArr = [...transcriptTranslated]
+    tmpArr[idx] = transcriptTranslated[idx]
+
+    tmpArr[idx].end_at = v
+
+    setTranscriptTranslated(tmpArr)
+  }
+
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -44,6 +71,7 @@ export default function TaskDetail() {
         </div>
         <div>
           <button className="btn btn-error btn-outline btn-sm"><Trash size={14} /></button>
+          <button className="btn btn-primary btn-outline btn-sm ml-2"><Save size={14} /> Save</button>
           <button className="btn btn-primary btn-outline btn-sm ml-2"><Check size={14} /> Process</button>
         </div>
       </div>
@@ -54,21 +82,33 @@ export default function TaskDetail() {
 
           <div className="grid grid-cols-2 w-full tracking-wide gap-2">
             <div>
-              <div className="text-center font-bold border-x border-black">Original</div>
+              <div className="text-center font-bold border-x border-gray-400">Original</div>
             </div>
 
             <div>
-              <div className="text-center font-bold border-x border-black">Translated</div>
+              <div className="text-center font-bold border-x border-gray-400">Translated</div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4">
-            {transcriptOriginal.map((oneRow, idx) => (
+            {transcriptOriginal?.map((oneRow, idx) => (
               <>
-                <div className="mb-10">
-                  <div className="flex justify-end text-sm mb-1">
+                <div className="mb-12">
+                  <div className="flex justify-between text-sm mb-1">
+                    <div>
+                      <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className={`btn btn-xs btn-outline
+                          ${(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? "btn-error" : "btn-success")}
+                        `}>
+                          {(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? `length diff (${transcriptTranslated[idx]?.value?.length - transcriptOriginal[idx]?.value?.length})` : "length same")}
+                        </div>
+                      </div>
+                    </div>
+
                     <input
-                      className="input input-xs input-bordered" value={transcriptOriginal[idx].start_at}
+                      className="input input-xs input-bordered"
+                      value={transcriptTranslated[idx]?.start_at}
+                      onChange={(e)=>OnChangeTranscriptStart(idx, e.target.value)}
                     />
                   </div>
                   <textarea
@@ -76,14 +116,26 @@ export default function TaskDetail() {
                   />
                 </div>
 
-                <div className="mb-10">
-                  <div className="flex justify-start text-sm mb-1">
+                <div className="mb-12">
+                  <div className="flex justify-between text-sm mb-1">
                     <input
-                      className="input input-xs input-bordered text-right" value={transcriptOriginal[idx].end_at}
+                      className="input input-xs input-bordered text-right"
+                      value={transcriptTranslated[idx]?.end_at}
+                      onChange={(e)=>OnChangeTranscriptEnd(idx, e.target.value)}
                     />
+                    <div>
+                      <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-xs btn-primary btn-outline"><MoreHorizontal size={14} /></div>
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-52">
+                          <li><a><Mic size={14} /> Record</a></li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                   <textarea
-                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full" value={transcriptTranslated[idx]?.value}
+                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full"
+                    value={transcriptTranslated[idx]?.value}
+                    onChange={(e)=>OnChangeTranscriptVal(idx, e.target.value)}
                   />
                 </div>
               </>
@@ -93,26 +145,40 @@ export default function TaskDetail() {
 
         <div className="w-full">
           <div>
-            <p className="text-lg">Original Video</p>
+            <div className="text-lg flex items-center"><Circle className="mr-2" size={16} /> Original Video</div>
 
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg overflow-hidden mt-2">
               {showVideoPlayer && <ReactPlayer
                 className="border rounded-lg overflow-hidden"
                 width={"100%"}
-                url={"http://localhost:29000/vdub/api/dubb/task/kurz-1/video/original"}
+                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/original`}
                 playing={false}
                 controls={true}
               />}
             </div>
           </div>
 
-          <div className="mt-4">
-            <p className="text-lg">Translated Video</p>
+          <div className="mt-8">
+            <div className="flex justify-between items-center">
+              <div className="text-lg flex items-center">
+                <Globe className="mr-2" size={16} /> Translated Video
+              </div>
+              <div>
+                <a
+                  href={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
+                  className="btn btn-primary btn-xs btn-outline"
+                  target="_blank"
+                  download
+                >
+                  <Download className="mr-2" size={14} /> Download
+                </a>
+              </div>
+            </div>
 
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg overflow-hidden mt-2">
               {showVideoPlayer && <ReactPlayer
                 width={"100%"}
-                url={"http://localhost:29000/vdub/api/dubb/task/kurz-1/video/translated"}
+                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
                 playing={false}
                 controls={true}
               />}
