@@ -9,13 +9,13 @@ export default function TaskList() {
 
   const [taskList, setTaskList] = useState([
     {
-      "name": "task-public-kurz-1",
+      "name": "placeholder-task-1",
       "status": "dubbed_video_generated",
       "is_running": false,
       "progress_summary": "10/10",
     },
     {
-      "name": "task-public-kurz-1",
+      "name": "placeholder-task-2",
       "status": "dubbed_video_generated",
       "is_running": true,
       "progress_summary": "7/10",
