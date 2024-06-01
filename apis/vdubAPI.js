@@ -31,6 +31,10 @@ class VdubAPI {
     return this.Get(`/vdub/api/dubb/tasks`, authToken, h, params)
   }
 
+  async GetTranscript(authToken, h, params) {
+    return this.Get(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.type}`, authToken, h, params)
+  }
+
   async PostTaskCreate(authToken, h, params) {
     return this.Post(`/vdub/api/dubb/start`, authToken, h, params)
   }
