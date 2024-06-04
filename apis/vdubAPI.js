@@ -4,7 +4,8 @@ class VdubAPI {
     } else {
     }
 
-    this.VdubHost = "http://localhost:29000"
+    // this.VdubHost = "http://localhost:29000"
+    this.VdubHost = "https://5bt69x77-29000.asse.devtunnels.ms"
   }
 
   // EXAMPLE

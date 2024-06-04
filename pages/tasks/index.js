@@ -116,7 +116,11 @@ export default function TaskList() {
                   onClick={()=>DeleteTask(oneTask.name)}
                 ><Trash size={14} /></button>
 
-                <Link href={`/tasks/${oneTask.name}/detail`} className="btn btn-xs btn-primary btn-outline"><Eye size={14} /> Detail</Link>
+                <Link
+                  href={`/tasks/${oneTask.name}/detail`}
+                  className="btn btn-xs btn-primary btn-outline"
+                  disabled={oneTask.current_status_human !== "Completed"}
+                ><Eye size={14} /> Detail</Link>
               </div>
             </div>
           </div>
