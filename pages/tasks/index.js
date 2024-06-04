@@ -1,22 +1,24 @@
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from 'next/router'
 
-import { Eye, LayoutTemplate, Plus } from "lucide-react"
+import { Eye, LayoutTemplate, Plus, Trash } from "lucide-react"
 
 import vdubAPI from "@/apis/vdubAPI"
 
 export default function TaskList() {
+  const router = useRouter()
 
   const [taskList, setTaskList] = useState([
     {
-      "name": "placeholder-task-1",
-      "status": "dubbed_video_generated",
+      "name": "loading-data-1",
+      "current_status_human": "N/A",
       "is_running": false,
       "progress_summary": "10/10",
     },
     {
-      "name": "placeholder-task-2",
-      "status": "dubbed_video_generated",
+      "name": "loading-data-2",
+      "current_status_human": "N/A",
       "is_running": true,
       "progress_summary": "7/10",
     },
@@ -24,6 +26,16 @@ export default function TaskList() {
 
   useEffect(() => {
     GetTaskList()
+  }, [])
+
+  var minutes = 0.1
+  const intervalRef = useRef(null)
+  useEffect(() => {
+    const execCallback = () => {
+      GetTaskList()
+    }
+    intervalRef.current = setInterval(execCallback, minutes * 60 * 1000)
+    return () => clearInterval(intervalRef.current)
   }, [])
 
   async function GetTaskList() {
@@ -35,6 +47,29 @@ export default function TaskList() {
       }
       setTaskList(body.data)
     } catch (e) { console.error(e) }
+  }
+
+  async function PostTaskCreateForRetry(taskName) {
+    try {
+      const response = await vdubAPI.PostTaskCreate("", {}, {
+        "task_name": taskName,
+        "youtube_url": "retry",
+        "voice_name": "retry",
+        "voice_rate": "retry",
+        "voice_pitch": "retry",
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Retry task failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      router.push("/tasks")
+    } catch (e) { alert(e) }
+  }
+
+  async function DeleteTask(taskName) {
+    if (!confirm("Are you sure want to delete this task?")) { return }
   }
 
   return (
@@ -49,18 +84,38 @@ export default function TaskList() {
           <div key={oneTask.name} className="flex flex-col rounded-lg overflow-hidden w-full bg-white shadow-sm">
             <div className="w-full">
               <div className="w-full relative">
-                <img src="https://placehold.co/200x200" className="w-full h-[200]" />
+                <img
+                  // src="https://placehold.co/200x200"
+                  src={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${oneTask.name}/video/snapshot`}
+                  className="w-full h-[200px]"
+                />
                 {oneTask.is_running &&
-                  <div className="absolute top-2 right-2 badge badge-neutral">on progress</div>
+                  <div className="absolute top-2 right-2 badge badge-neutral flex items-center">
+                    <span className="loading loading-spinner loading-xs mr-1"></span>
+                    <span>on progress</span>
+                  </div>
+                }
+                {!oneTask.is_running && oneTask.current_status_human !== "Completed" &&
+                  <button
+                    className="absolute top-2 right-2 btn btn-xs btn-primary btn-outline"
+                    onClick={()=>PostTaskCreateForRetry(oneTask.name)}
+                  >
+                    <span>retry</span>
+                  </button>
                 }
               </div>
             </div>
             <div className="w-full p-2 tracking-wide">
               <p className="text-sm font-bold break-all">{oneTask.name}</p>
-              <p className="text-sm mt-1 mb-[-10px] break-all">{oneTask.status}</p>
+              <p className="text-sm mt-1 mb-[-10px] break-all">{oneTask.current_status_human}</p>
               <progress className="progress progress-primary w-full" value={parseInt(oneTask.progress_summary)} max="10"></progress>
 
-              <div className="flex justify-end mt-8">
+              <div className="flex justify-between mt-8">
+                <button
+                  className="btn btn-xs btn-error btn-outline"
+                  onClick={()=>DeleteTask(oneTask.name)}
+                ><Trash size={14} /></button>
+
                 <Link href={`/tasks/${oneTask.name}/detail`} className="btn btn-xs btn-primary btn-outline"><Eye size={14} /> Detail</Link>
               </div>
             </div>

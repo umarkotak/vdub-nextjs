@@ -26,7 +26,7 @@ export default function TaskNew() {
         return
       }
 
-      router.push()
+      router.push("/tasks")
     } catch (e) { alert(e) }
   }
 
