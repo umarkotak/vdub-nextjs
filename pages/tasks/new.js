@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from 'next/router'
+import dynamic from "next/dynamic"
 
 import { Plus } from "lucide-react"
+const Select = dynamic(() => import("react-select"), { ssr: false })
 
 import vdubAPI from "@/apis/vdubAPI"
 
@@ -76,41 +78,44 @@ export default function TaskNew() {
           <div className="label">
             <span className="label-text">Voice Name</span>
           </div>
-          <input
-            type="text"
-            className="input input-sm input-bordered w-full"
+          <Select
+            className=""
+            isClearable={true}
+            options={vdubAPI.EdgeVoices()}
             onChange={(e)=>OnChange(e, "voice_name")}
-            value={createParams["voice_name"]}
+            value={{value: createParams["voice_name"], label: createParams["voice_name"]}}
           />
           <div className="label">
           </div>
         </label>
-        <label className="form-control w-full">
-          <div className="label">
-            <span className="label-text">Voice Rate</span>
-          </div>
-          <input
-            type="text"
-            className="input input-sm input-bordered w-full"
-            onChange={(e)=>OnChange(e, "voice_rate")}
-            value={createParams["voice_rate"]}
-          />
-          <div className="label">
-          </div>
-        </label>
-        <label className="form-control w-full">
-          <div className="label">
-            <span className="label-text">Voice Pitch</span>
-          </div>
-          <input
-            type="text"
-            className="input input-sm input-bordered w-full"
-            onChange={(e)=>OnChange(e, "voice_pitch")}
-            value={createParams["voice_pitch"]}
-          />
-          <div className="label">
-          </div>
-        </label>
+        <div className="flex gap-1">
+          <label className="form-control w-full">
+            <div className="label">
+              <span className="label-text">Voice Rate</span>
+            </div>
+            <input
+              type="text"
+              className="input input-sm input-bordered w-full"
+              onChange={(e)=>OnChange(e, "voice_rate")}
+              value={createParams["voice_rate"]}
+            />
+            <div className="label">
+            </div>
+          </label>
+          <label className="form-control w-full">
+            <div className="label">
+              <span className="label-text">Voice Pitch</span>
+            </div>
+            <input
+              type="text"
+              className="input input-sm input-bordered w-full"
+              onChange={(e)=>OnChange(e, "voice_pitch")}
+              value={createParams["voice_pitch"]}
+            />
+            <div className="label">
+            </div>
+          </label>
+        </div>
         <div className="mt-2 flex justify-between">
           <div>
           </div>

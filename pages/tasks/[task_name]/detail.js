@@ -2,9 +2,11 @@ import Link from "next/link"
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
+import dynamic from "next/dynamic"
 
 import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, RefreshCcw, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
+const Select = dynamic(() => import("react-select"), { ssr: false })
 
 import vdubAPI from "@/apis/vdubAPI"
 
@@ -17,7 +19,10 @@ export default function TaskDetail() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false)
   const [taskDetail, setTaskDetail] = useState({})
   const [updateTaskData, setUpdateTaskData] = useState({
-    youtube_url: ""
+    youtube_url: "",
+    voice_name: "",
+    voice_rate: "",
+    voice_pitch: "",
   })
 
   useEffect(() => {
@@ -53,7 +58,10 @@ export default function TaskDetail() {
       setTaskDetail(body.data)
 
       setUpdateTaskData({
-        youtube_url: body.data.state.youtube_url
+        youtube_url: body.data.state.youtube_url,
+        voice_name: body.data.state.voice_name,
+        voice_rate: body.data.state.voice_rate,
+        voice_pitch: body.data.state.voice_pitch,
       })
     } catch (e) { console.error(e) }
   }
@@ -109,12 +117,31 @@ export default function TaskDetail() {
 
   function OnChange(e, field) {
     if (e?.target?.value) {
-      setUpdateTaskData({...createParams, [field]: e.target.value})
+      setUpdateTaskData({...updateTaskData, [field]: e.target.value})
     } else if (e?.value) {
-      setUpdateTaskData({...createParams, [field]: e.value})
+      setUpdateTaskData({...updateTaskData, [field]: e.value})
     } else {
-      setUpdateTaskData({...createParams, [field]: ""})
+      setUpdateTaskData({...updateTaskData, [field]: ""})
     }
+  }
+
+  async function PostTaskUpdateVoice() {
+    if (!confirm(`Are you sure want to regenerate video with updated voice?`)) { return }
+
+    try {
+      const response = await vdubAPI.PostTaskCreate("", {}, {
+        ...updateTaskData,
+        task_name: params.task_name,
+        force_start_from: "transcript_translated"
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Start task failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      router.push("/tasks")
+    } catch (e) { alert(e) }
   }
 
   return (
@@ -122,8 +149,12 @@ export default function TaskDetail() {
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
       <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center">
-        <div>
+        <div className="flex items-center">
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
+          {taskDetail?.state_human?.is_running && <div className="badge badge-neutral flex items-center ml-4">
+            <span className="loading loading-spinner loading-xs mr-1"></span>
+            <span>task running</span>
+          </div>}
         </div>
         <div className="flex">
           <button className="btn btn-primary btn-sm btn-outline" onClick={()=>window.location.reload()}>
@@ -149,7 +180,7 @@ export default function TaskDetail() {
                   ><Trash size={14} /> Delete</button>
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <label className="form-control w-full">
                     <div className="label">
                       <span className="label-text">Youtube URL</span>
@@ -159,13 +190,48 @@ export default function TaskDetail() {
                       className="input input-sm input-bordered w-full"
                       onChange={(e)=>OnChange(e, "youtube_url")}
                       value={updateTaskData["youtube_url"]}
+                      readOnly
                     />
-                    <div className="label">
-                    </div>
                   </label>
+                  <label className="form-control w-full">
+                    <div className="label">
+                      <span className="label-text">Voice Name</span>
+                    </div>
+                    <Select
+                      className=""
+                      isClearable={true}
+                      options={vdubAPI.EdgeVoices()}
+                      onChange={(e)=>OnChange(e, "voice_name")}
+                      value={{value: updateTaskData["voice_name"], label: updateTaskData["voice_name"]}}
+                    />
+                  </label>
+                  <div className="flex gap-1">
+                    <label className="form-control w-full">
+                      <div className="label">
+                        <span className="label-text">Voice Rate</span>
+                      </div>
+                      <input
+                        type="text"
+                        className="input input-sm input-bordered w-full"
+                        onChange={(e)=>OnChange(e, "voice_rate")}
+                        value={updateTaskData["voice_rate"]}
+                      />
+                    </label>
+                    <label className="form-control w-full">
+                      <div className="label">
+                        <span className="label-text">Voice Pitch</span>
+                      </div>
+                      <input
+                        type="text"
+                        className="input input-sm input-bordered w-full"
+                        onChange={(e)=>OnChange(e, "voice_pitch")}
+                        value={updateTaskData["voice_pitch"]}
+                      />
+                    </label>
+                  </div>
                 </div>
 
-                <details className="collapse bg-base-200">
+                <details className="collapse bg-base-200 mt-4">
                   <summary className="collapse-title w-full p-0 min-h-0">
                     <div className="flex justify-between items-center bg-white p-1 h-full mb-0">
                       <span>Status: {taskDetail?.state_human?.current_status_human}</span>
@@ -180,16 +246,32 @@ export default function TaskDetail() {
                             <CircleCheck size={18} className="mr-2 text-success" /> :
                             <Circle size={18} className="mr-2" />
                           }
-                          <span>{oneProg.name}</span>
+                          <span>{oneProg.name_human}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 </details>
 
-                <div className="flex items-center justify-end mt-4">
-                  <button className="btn btn-primary btn-outline btn-sm"><Save size={14} /> Save</button>
-                  <button className="btn btn-primary btn-outline btn-sm ml-2"><Check size={14} /> Process</button>
+                <div className="text-lg mt-4">
+                  Action
+                </div>
+                <div className="flex flex-wrap gap-1 justify-start mt-1">
+                  <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
+                    <button
+                      className="btn btn-primary btn-outline btn-xs"
+                      onClick={()=>PostTaskUpdateVoice()}
+                    ><Circle size={14} /> update voice</button>
+                  </div>
+                  <div className="tooltip" data-tip="will readjust the voice based on translated transcript.">
+                    <button className="btn btn-primary btn-outline btn-xs"><Circle size={14} /> update transcript</button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end mt-8">
+                  <div className="tooltip tooltip-left" data-tip="only save transcript and value, no process executed.">
+                    <button className="btn btn-primary btn-outline btn-sm"><Save size={14} /> Save</button>
+                  </div>
                 </div>
               </div>
             </div>

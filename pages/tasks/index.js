@@ -115,7 +115,7 @@ export default function TaskList() {
                 {oneTask.is_running &&
                   <div className="absolute top-2 right-2 badge badge-neutral flex items-center">
                     <span className="loading loading-spinner loading-xs mr-1"></span>
-                    <span>on progress</span>
+                    <span>task running</span>
                   </div>
                 }
                 {!oneTask.is_running && oneTask.current_status_human !== "Completed" &&
@@ -142,7 +142,7 @@ export default function TaskList() {
                 <Link
                   href={`/tasks/${oneTask.name}/detail`}
                   className="btn btn-xs btn-primary btn-outline"
-                  disabled={oneTask.current_status_human !== "Completed"}
+                  // disabled={oneTask.current_status_human !== "Completed"}
                 ><Eye size={14} /> Detail</Link>
               </div>
             </div>
