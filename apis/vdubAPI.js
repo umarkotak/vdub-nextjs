@@ -4,8 +4,8 @@ class VdubAPI {
     } else {
     }
 
-    // this.VdubHost = "http://localhost:29000"
-    this.VdubHost = "https://5bt69x77-29000.asse.devtunnels.ms"
+    this.VdubHost = "http://localhost:29000"
+    // this.VdubHost = "https://5bt69x77-29000.asse.devtunnels.ms"
   }
 
   // EXAMPLE
@@ -32,12 +32,20 @@ class VdubAPI {
     return this.Get(`/vdub/api/dubb/tasks`, authToken, h, params)
   }
 
+  async GetTaskDetail(authToken, h, params) {
+    return this.Get(`/vdub/api/dubb/task/${params.task_name}/status`, authToken, h, params)
+  }
+
   async GetTranscript(authToken, h, params) {
     return this.Get(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.type}`, authToken, h, params)
   }
 
   async PostTaskCreate(authToken, h, params) {
     return this.Post(`/vdub/api/dubb/start`, authToken, h, params)
+  }
+
+  async DeleteTask(authToken, h, params) {
+    return this.Delete(`/vdub/api/dubb/task/${params.task_name}`, authToken, h, params)
   }
 
   async Get(path, authToken, h, params) {

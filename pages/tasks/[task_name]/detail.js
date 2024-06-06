@@ -1,21 +1,25 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import { useRouter } from 'next/router'
 
-import { Check, Circle, Download, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, Save, Trash } from "lucide-react"
+import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
 
 import vdubAPI from "@/apis/vdubAPI"
 
 export default function TaskDetail() {
   const params = useParams()
+  const router = useRouter()
 
   const [transcriptOriginal, setTranscriptOriginal] = useState([])
   const [transcriptTranslated, setTranscriptTranslated] = useState([])
   const [showVideoPlayer, setShowVideoPlayer] = useState(false)
+  const [taskDetail, setTaskDetail] = useState({})
 
   useEffect(() => {
     setShowVideoPlayer(true)
+    GetTaskDetail()
     GetTranscript("original", setTranscriptOriginal)
     GetTranscript("translated", setTranscriptTranslated)
   }, [params])
@@ -31,6 +35,19 @@ export default function TaskDetail() {
         return
       }
       setFn(body.data.transcript_line)
+    } catch (e) { console.error(e) }
+  }
+
+  async function GetTaskDetail() {
+    try {
+      const response = await vdubAPI.GetTaskDetail("", {}, {
+        task_name: params.task_name,
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        return
+      }
+      setTaskDetail(body.data)
     } catch (e) { console.error(e) }
   }
 
@@ -61,18 +78,75 @@ export default function TaskDetail() {
     setTranscriptTranslated(tmpArr)
   }
 
+  async function DeleteTask(taskName) {
+    if (!confirm("Are you sure want to delete this task?")) { return }
+
+    try {
+      const response = await vdubAPI.DeleteTask("", {}, {task_name: taskName})
+      if (response.status !== 200) {
+        return
+      }
+      router.push("/tasks")
+    } catch (e) { console.error(e) }
+  }
+
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
       <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center">
         <div>
-          <p className="text-lg font-bold">{params?.task_name}</p>
+          <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
         </div>
         <div>
-          <button className="btn btn-error btn-outline btn-sm"><Trash size={14} /></button>
-          <button className="btn btn-primary btn-outline btn-sm ml-2"><Save size={14} /> Save</button>
-          <button className="btn btn-primary btn-outline btn-sm ml-2"><Check size={14} /> Process</button>
+          <div className="drawer drawer-end">
+            <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+            <div className="drawer-content">
+              {/* Page content here */}
+              <label htmlFor="my-drawer-4" className="drawer-button btn btn-primary btn-outline btn-sm"><Edit size={14} /> Edit</label>
+            </div>
+            <div className="drawer-side z-10">
+              <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
+
+              <div className="menu p-4 w-3/4 max-w-md min-h-full bg-base-200 text-base-content">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold flex items-center"><Circle size={18} className="mr-2" /> {params?.task_name}</span>
+
+                  <button
+                    className="btn btn-error btn-outline btn-sm"
+                    onClick={()=>DeleteTask(params.task_name)}
+                  ><Trash size={14} /> Delete</button>
+                </div>
+
+                <details className="collapse bg-base-200 mt-4">
+                  <summary className="collapse-title w-full p-0 min-h-0">
+                    <div className="flex justify-between items-center bg-white p-1 h-full mb-0">
+                      <span>Status detail</span>
+                      <span><ChevronRight size={14} /></span>
+                    </div>
+                  </summary>
+                  <div className="collapse-content bg-white p-1">
+                    <div className="flex flex-col gap-2">
+                      {taskDetail?.state_human?.progresses.map((oneProg) => (
+                        <div key={oneProg.name} className="flex items-center">
+                          {oneProg.progress === "done" ?
+                            <CircleCheck size={18} className="mr-2 text-success" /> :
+                            <Circle size={18} className="mr-2" />
+                          }
+                          <span>{oneProg.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+
+                <div className="flex items-center justify-end mt-4">
+                  <button className="btn btn-primary btn-outline btn-sm"><Save size={14} /> Save</button>
+                  <button className="btn btn-primary btn-outline btn-sm ml-2"><Check size={14} /> Process</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

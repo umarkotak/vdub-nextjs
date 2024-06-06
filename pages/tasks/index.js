@@ -23,6 +23,7 @@ export default function TaskList() {
       "progress_summary": "7/10",
     },
   ])
+  const [serverOnline, setServerOnline] = useState(true)
 
   useEffect(() => {
     GetTaskList()
@@ -46,7 +47,12 @@ export default function TaskList() {
         return
       }
       setTaskList(body.data)
-    } catch (e) { console.error(e) }
+      setServerOnline(true)
+    } catch (e) {
+      setTaskList([])
+      setServerOnline(false)
+      console.error(e)
+    }
   }
 
   async function PostTaskCreateForRetry(taskName) {
@@ -70,10 +76,22 @@ export default function TaskList() {
 
   async function DeleteTask(taskName) {
     if (!confirm("Are you sure want to delete this task?")) { return }
+
+    try {
+      const response = await vdubAPI.DeleteTask("", {}, {task_name: taskName})
+      if (response.status !== 200) {
+        return
+      }
+      GetTaskList()
+    } catch (e) { console.error(e) }
   }
 
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
+      {!serverOnline && <div className="flex items-center bg-error text-white p-2 rounded-lg">
+        Sorry, server is offline.
+      </div>}
+
       <div className="flex justify-between items-center">
         <span className="flex gap-2 text-xl items-center"><LayoutTemplate /> Task List</span>
         <Link href="/tasks/new" className="btn btn-sm btn-primary btn-outline"><Plus size={14} /> New Task</Link>
@@ -83,12 +101,17 @@ export default function TaskList() {
         {taskList.map((oneTask)=>(
           <div key={oneTask.name} className="flex flex-col rounded-lg overflow-hidden w-full bg-white shadow-sm">
             <div className="w-full">
-              <div className="w-full relative">
-                <img
-                  // src="https://placehold.co/200x200"
-                  src={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${oneTask.name}/video/snapshot`}
-                  className="w-full h-[200px]"
-                />
+              <div className="w-full relative overflow-hidden">
+                <Link
+                  href={`/tasks/${oneTask.name}/detail`}
+                  className="overflow-hidden"
+                >
+                  <img
+                    // src="https://placehold.co/200x200"
+                    src={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${oneTask.name}/video/snapshot`}
+                    className="w-full h-[200px] hover:scale-110 duration-150 overflow-hidden"
+                  />
+                </Link>
                 {oneTask.is_running &&
                   <div className="absolute top-2 right-2 badge badge-neutral flex items-center">
                     <span className="loading loading-spinner loading-xs mr-1"></span>
