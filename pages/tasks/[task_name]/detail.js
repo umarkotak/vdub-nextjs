@@ -1,9 +1,9 @@
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 
-import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, Save, Trash } from "lucide-react"
+import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, RefreshCcw, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
 
 import vdubAPI from "@/apis/vdubAPI"
@@ -16,6 +16,9 @@ export default function TaskDetail() {
   const [transcriptTranslated, setTranscriptTranslated] = useState([])
   const [showVideoPlayer, setShowVideoPlayer] = useState(false)
   const [taskDetail, setTaskDetail] = useState({})
+  const [updateTaskData, setUpdateTaskData] = useState({
+    youtube_url: ""
+  })
 
   useEffect(() => {
     setShowVideoPlayer(true)
@@ -48,6 +51,10 @@ export default function TaskDetail() {
         return
       }
       setTaskDetail(body.data)
+
+      setUpdateTaskData({
+        youtube_url: body.data.state.youtube_url
+      })
     } catch (e) { console.error(e) }
   }
 
@@ -90,6 +97,26 @@ export default function TaskDetail() {
     } catch (e) { console.error(e) }
   }
 
+  // var minutes = 0.1
+  // const intervalRef = useRef(null)
+  // useEffect(() => {
+  //   const execCallback = () => {
+  //     GetTaskList()
+  //   }
+  //   intervalRef.current = setInterval(execCallback, minutes * 60 * 1000)
+  //   return () => clearInterval(intervalRef.current)
+  // }, [])
+
+  function OnChange(e, field) {
+    if (e?.target?.value) {
+      setUpdateTaskData({...createParams, [field]: e.target.value})
+    } else if (e?.value) {
+      setUpdateTaskData({...createParams, [field]: e.value})
+    } else {
+      setUpdateTaskData({...createParams, [field]: ""})
+    }
+  }
+
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -98,12 +125,16 @@ export default function TaskDetail() {
         <div>
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
         </div>
-        <div>
+        <div className="flex">
+          <button className="btn btn-primary btn-sm btn-outline" onClick={()=>window.location.reload()}>
+            <RefreshCcw size={14} />
+            Refresh
+          </button>
           <div className="drawer drawer-end">
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
               {/* Page content here */}
-              <label htmlFor="my-drawer-4" className="drawer-button btn btn-primary btn-outline btn-sm"><Edit size={14} /> Edit</label>
+              <label htmlFor="my-drawer-4" className="drawer-button btn btn-primary btn-outline btn-sm ml-2"><Edit size={14} /> Edit</label>
             </div>
             <div className="drawer-side z-10">
               <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
@@ -118,10 +149,26 @@ export default function TaskDetail() {
                   ><Trash size={14} /> Delete</button>
                 </div>
 
-                <details className="collapse bg-base-200 mt-4">
+                <div className="flex flex-col gap-4">
+                  <label className="form-control w-full">
+                    <div className="label">
+                      <span className="label-text">Youtube URL</span>
+                    </div>
+                    <input
+                      type="text"
+                      className="input input-sm input-bordered w-full"
+                      onChange={(e)=>OnChange(e, "youtube_url")}
+                      value={updateTaskData["youtube_url"]}
+                    />
+                    <div className="label">
+                    </div>
+                  </label>
+                </div>
+
+                <details className="collapse bg-base-200">
                   <summary className="collapse-title w-full p-0 min-h-0">
                     <div className="flex justify-between items-center bg-white p-1 h-full mb-0">
-                      <span>Status detail</span>
+                      <span>Status: {taskDetail?.state_human?.current_status_human}</span>
                       <span><ChevronRight size={14} /></span>
                     </div>
                   </summary>
@@ -165,7 +212,7 @@ export default function TaskDetail() {
           </div>
 
           <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4">
-            {transcriptOriginal?.map((oneRow, idx) => (
+            {transcriptTranslated && transcriptOriginal?.map((oneRow, idx) => (
               <>
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">

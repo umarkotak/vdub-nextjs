@@ -109,7 +109,7 @@ export default function TaskList() {
                   <img
                     // src="https://placehold.co/200x200"
                     src={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${oneTask.name}/video/snapshot`}
-                    className="w-full h-[200px] hover:scale-110 duration-150 overflow-hidden"
+                    className="w-full h-[200px] hover:scale-110 duration-150 overflow-hidden object-cover"
                   />
                 </Link>
                 {oneTask.is_running &&
