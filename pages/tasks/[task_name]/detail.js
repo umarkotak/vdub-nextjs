@@ -144,6 +144,19 @@ export default function TaskDetail() {
     } catch (e) { alert(e) }
   }
 
+  async function PostUpdateTranscript() {
+    // if (!confirm(`Are you sure want to regenerate video with updated transcript?`)) { return }
+
+    var tmpParams = {
+      task_name: params.task_name,
+      transcript_data: transcriptTranslated,
+    }
+
+    try {
+      console.log("PARAMS", tmpParams)
+    } catch (e) { alert(e) }
+  }
+
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -264,7 +277,10 @@ export default function TaskDetail() {
                     ><Circle size={14} /> update voice</button>
                   </div>
                   <div className="tooltip" data-tip="will readjust the voice based on translated transcript.">
-                    <button className="btn btn-primary btn-outline btn-xs"><Circle size={14} /> update transcript</button>
+                    <button
+                      className="btn btn-primary btn-outline btn-xs"
+                      onClick={()=>PostUpdateTranscript()}
+                    ><Circle size={14} /> update transcript</button>
                   </div>
                 </div>
 
@@ -294,7 +310,7 @@ export default function TaskDetail() {
           </div>
 
           <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4">
-            {transcriptTranslated && transcriptOriginal?.map((oneRow, idx) => (
+            {transcriptTranslated && transcriptTranslated?.map((oneRow, idx) => (
               <>
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">
