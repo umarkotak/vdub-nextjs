@@ -44,6 +44,14 @@ class VdubAPI {
     return this.Post(`/vdub/api/dubb/start`, authToken, h, params)
   }
 
+  async PatchManualUpdateStatus(authToken, h, params) {
+    return this.Patch(`/vdub/api/dubb/task/${params.task_name}/status`, authToken, h, params)
+  }
+
+  async PatchUpdateTranscript(authToken, h, params) {
+    return this.Patch(`/vdub/api/dubb/task/${params.task_name}/transcript`, authToken, h, params)
+  }
+
   async DeleteTask(authToken, h, params) {
     return this.Delete(`/vdub/api/dubb/task/${params.task_name}`, authToken, h, params)
   }

@@ -4,11 +4,25 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Plus, RefreshCcw, Save, Trash } from "lucide-react"
+import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Plus, RefreshCcw, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
 import vdubAPI from "@/apis/vdubAPI"
+
+const stateOptions = [
+  {value: "initialized", label: "initialized"},
+  {value: "video_downloaded", label: "video_downloaded"},
+  {value: "video_audio_generated", label: "video_audio_generated"},
+  {value: "video_audio_separated", label: "video_audio_separated"},
+  {value: "audio_16khz_generated", label: "audio_16khz_generated"},
+  {value: "video_with_instrument_generated", label: "video_with_instrument_generated"},
+  {value: "audio_transcripted", label: "audio_transcripted"},
+  {value: "transcript_translated", label: "transcript_translated"},
+  {value: "audio_generated", label: "audio_generated"},
+  {value: "audio_adjusted", label: "audio_adjusted"},
+  {value: "dubbed_video_generated", label: "dubbed_video_generated"},
+]
 
 export default function TaskDetail() {
   const params = useParams()
@@ -24,16 +38,23 @@ export default function TaskDetail() {
     voice_rate: "",
     voice_pitch: "",
   })
+  const [selectedStatus, setSelectedStatus] = useState("initialized")
 
   useEffect(() => {
+    InitializeData()
+  }, [params])
+
+  function InitializeData() {
     setShowVideoPlayer(true)
     GetTaskDetail()
     GetTranscript("original", setTranscriptOriginal)
     GetTranscript("translated", setTranscriptTranslated)
-  }, [params])
+  }
 
   async function GetTranscript(transcriptType, setFn) {
     try {
+      if (!params) { return }
+
       const response = await vdubAPI.GetTranscript("", {}, {
         task_name: params.task_name,
         type: transcriptType,
@@ -48,6 +69,8 @@ export default function TaskDetail() {
 
   async function GetTaskDetail() {
     try {
+      if (!params) { return }
+
       const response = await vdubAPI.GetTaskDetail("", {}, {
         task_name: params.task_name,
       })
@@ -63,6 +86,7 @@ export default function TaskDetail() {
         voice_rate: body.data.state.voice_rate,
         voice_pitch: body.data.state.voice_pitch,
       })
+      setSelectedStatus(body.data.state.status)
     } catch (e) { console.error(e) }
   }
 
@@ -145,15 +169,40 @@ export default function TaskDetail() {
   }
 
   async function PostUpdateTranscript() {
-    // if (!confirm(`Are you sure want to regenerate video with updated transcript?`)) { return }
+    if (!confirm(`Are you sure want to regenerate video with updated transcript?`)) { return }
 
-    var tmpParams = {
+    var updateTranscriptParams = {
       task_name: params.task_name,
       transcript_data: transcriptTranslated,
     }
 
     try {
-      console.log("PARAMS", tmpParams)
+      const response = await vdubAPI.PatchUpdateTranscript("", {}, updateTranscriptParams)
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Update transcript failed: ${body?.error?.message}`)
+        return
+      }
+
+      alert(`Update transcript successful`)
+    } catch (e) { alert(e) }
+  }
+
+  async function ManualUpdateStatus() {
+    if (!confirm(`Are you sure want to update status to ${selectedStatus}?`)) { return }
+
+    try {
+      const response = await vdubAPI.PatchManualUpdateStatus("", {}, {
+        task_name: params.task_name,
+        status: selectedStatus
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Start task failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      InitializeData()
     } catch (e) { alert(e) }
   }
 
@@ -161,19 +210,20 @@ export default function TaskDetail() {
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
-      <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center">
+      <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center">
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
           {taskDetail?.state_human?.is_running && <div className="badge badge-neutral flex items-center ml-4">
             <span className="loading loading-spinner loading-xs mr-1"></span>
-            <span>task running</span>
+            <span>task running - {taskDetail?.state_human?.current_status_human}</span>
           </div>}
         </div>
         <div className="flex">
-          <button className="btn btn-primary btn-sm btn-outline" onClick={()=>window.location.reload()}>
+          <button className="btn btn-primary btn-sm btn-outline" onClick={()=>InitializeData()}>
             <RefreshCcw size={14} />
             Refresh
           </button>
+          {/* SIDE DRAWER FOR EDIT */}
           <div className="drawer drawer-end">
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
@@ -246,7 +296,7 @@ export default function TaskDetail() {
 
                 <details className="collapse bg-base-200 mt-4">
                   <summary className="collapse-title w-full p-0 min-h-0">
-                    <div className="flex justify-between items-center bg-white p-1 h-full mb-0">
+                    <div className="flex justify-between items-center bg-white p-1 h-full mb-0 hover:bg-slate-100">
                       <span>Status: {taskDetail?.state_human?.current_status_human}</span>
                       <span><ChevronRight size={14} /></span>
                     </div>
@@ -289,6 +339,27 @@ export default function TaskDetail() {
                     <button className="btn btn-primary btn-outline btn-sm"><Save size={14} /> Save</button>
                   </div>
                 </div>
+
+                <div className="w-full border-b border-solid border-black my-2">
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span>
+                      Manual Update Status
+                    </span>
+                    <button className="btn btn-primary btn-outline btn-sm" onClick={()=>ManualUpdateStatus()}>
+                      <Pencil size={14} /> Update
+                    </button>
+                  </div>
+                  <select value={selectedStatus} onChange={(e)=>{setSelectedStatus(e.target.value)}} className="select select-sm select-bordered w-full">
+                    {stateOptions.map((option) => (
+                      <option key={option.value} value={option.value} id={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -309,39 +380,52 @@ export default function TaskDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4">
+          <div className="h-[75vh] overflow-auto">
             {transcriptTranslated && transcriptTranslated?.map((oneRow, idx) => (
-              <>
+              <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4" key={idx}>
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">
                     <div>
                       <div className="dropdown dropdown-end">
+                        <button className="btn btn-xs btn-outline mr-1">{idx+1}</button>
                         <div tabIndex={0} role="button" className={`btn btn-xs btn-outline
                           ${(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? "btn-error" : "btn-success")}
                         `}>
-                          {(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? `length diff (${transcriptTranslated[idx]?.value?.length - transcriptOriginal[idx]?.value?.length})` : "length same")}
+                          {(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length
+                            ? `length diff (${transcriptTranslated[idx]?.value?.length - transcriptOriginal[idx]?.value?.length})`
+                            : "length same")}
                         </div>
                       </div>
                     </div>
 
-                    <input
-                      className="input input-xs input-bordered"
-                      value={transcriptTranslated[idx]?.start_at}
-                      onChange={(e)=>OnChangeTranscriptStart(idx, e.target.value)}
-                    />
+                    <div className="flex justify-end gap-1">
+                      <button className="btn btn-xs btn-outline">{transcriptOriginal[idx]?.value.length} chs</button>
+                      <input
+                        className="input input-xs input-bordered w-[100px]"
+                        value={transcriptTranslated[idx]?.start_at}
+                        onChange={(e)=>OnChangeTranscriptStart(idx, e.target.value)}
+                      />
+                    </div>
                   </div>
                   <textarea
-                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full read-only:text-gray-700" readOnly value={transcriptOriginal[idx].value}
+                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full read-only:text-gray-700" readOnly value={transcriptOriginal[idx]?.value}
                   />
                 </div>
 
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">
-                    <input
-                      className="input input-xs input-bordered text-right"
-                      value={transcriptTranslated[idx]?.end_at}
-                      onChange={(e)=>OnChangeTranscriptEnd(idx, e.target.value)}
-                    />
+                    <div className="flex items-center gap-1">
+                      <input
+                        className="input input-xs input-bordered text-right w-[100px]"
+                        value={transcriptTranslated[idx]?.end_at}
+                        onChange={(e)=>OnChangeTranscriptEnd(idx, e.target.value)}
+                      />
+                      <button className="btn btn-xs btn-outline">{transcriptTranslated[idx]?.value.length} chs</button>
+                      <button className="btn btn-xs btn-outline">{subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at)}s</button>
+                      <button className="btn btn-xs btn-outline">{
+                        (transcriptTranslated[idx]?.value.length / parseFloat(subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at))).toFixed(2)
+                      } chs/s</button>
+                    </div>
                     <div>
                       <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-xs btn-primary btn-outline"><MoreHorizontal size={14} /></div>
@@ -357,7 +441,7 @@ export default function TaskDetail() {
                     onChange={(e)=>OnChangeTranscriptVal(idx, e.target.value)}
                   />
                 </div>
-              </>
+              </div>
             ))}
           </div>
         </div>
@@ -407,4 +491,26 @@ export default function TaskDetail() {
       </div>
     </main>
   )
+}
+
+function subtractTime(time1, time2) {
+  // Parse the time strings into milliseconds
+  const time1Ms = parseTime(time1);
+  const time2Ms = parseTime(time2);
+
+  // Calculate the difference in milliseconds
+  const diffMs = time1Ms - time2Ms;
+
+  // Convert the difference to seconds and microseconds
+  const seconds = Math.floor(diffMs / 1000);
+  const microseconds = diffMs % 1000;
+
+  return `${seconds}.${microseconds}`;
+}
+
+function parseTime(timeString) {
+  const parts = timeString.split(':').map(Number);
+  return (
+    (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000 + parts[3]
+  );
 }
