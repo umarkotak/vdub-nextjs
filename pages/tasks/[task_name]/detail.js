@@ -206,6 +206,42 @@ export default function TaskDetail() {
     } catch (e) { alert(e) }
   }
 
+  async function DeleteOneSubtitleByIdx(idx) {
+    if (!confirm(`Are you sure want to delete subtitle?`)) { return }
+
+    try {
+      // const response = await vdubAPI.PatchManualUpdateStatus("", {}, {
+      //   task_name: params.task_name,
+      //   status: selectedStatus
+      // })
+      // const body = await response.json()
+      // if (response.status !== 200) {
+      //   alert(`Start task failed: ${JSON.stringify(body)}`)
+      //   return
+      // }
+
+      // InitializeData()
+    } catch (e) { alert(e) }
+  }
+
+  async function AddOneBelowSubtitleByIdx(idx) {
+    if (!confirm(`Are you sure want to add subtitle?`)) { return }
+
+    try {
+      // const response = await vdubAPI.PatchManualUpdateStatus("", {}, {
+      //   task_name: params.task_name,
+      //   status: selectedStatus
+      // })
+      // const body = await response.json()
+      // if (response.status !== 200) {
+      //   alert(`Start task failed: ${JSON.stringify(body)}`)
+      //   return
+      // }
+
+      // InitializeData()
+    } catch (e) { alert(e) }
+  }
+
   return (
     <main className="flex flex-col min-h-screen p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -370,24 +406,24 @@ export default function TaskDetail() {
         <div className="w-full">
           <div className="text-xl mb-2">Transcript</div>
 
-          <div className="grid grid-cols-2 w-full tracking-wide gap-2">
-            <div>
-              <div className="text-center font-bold border-x border-gray-400">Original</div>
-            </div>
-
-            <div>
-              <div className="text-center font-bold border-x border-gray-400">Translated</div>
-            </div>
-          </div>
-
           <div className="h-[75vh] overflow-auto">
+            <div className="grid grid-cols-2 w-full tracking-wide gap-2 sticky top-0 rounded-lg z-20">
+              <div>
+                <div className="text-center bg-white py-1 rounded-b-lg border border-black">Original</div>
+              </div>
+
+              <div>
+                <div className="text-center bg-white py-1 rounded-b-lg border border-black">Translated</div>
+              </div>
+            </div>
+
             {transcriptTranslated && transcriptTranslated?.map((oneRow, idx) => (
-              <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-4" key={idx}>
+              <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-2" key={idx}>
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">
                     <div>
                       <div className="dropdown dropdown-end">
-                        <button className="btn btn-xs btn-outline mr-1">{idx+1}</button>
+                        <button className="btn btn-xs btn-outline mr-1">{idx}</button>
                         <div tabIndex={0} role="button" className={`btn btn-xs btn-outline
                           ${(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? "btn-error" : "btn-success")}
                         `}>
@@ -401,9 +437,12 @@ export default function TaskDetail() {
                     <div className="flex justify-end gap-1">
                       <button className="btn btn-xs btn-outline">{transcriptOriginal[idx]?.value.length} chs</button>
                       <input
-                        className="input input-xs input-bordered w-[100px]"
-                        value={transcriptTranslated[idx]?.start_at}
-                        onChange={(e)=>OnChangeTranscriptStart(idx, e.target.value)}
+                        className="input input-xs input-bordered w-[100px]" disabled
+                        value={transcriptOriginal[idx]?.start_at}
+                      />
+                      <input
+                        className="input input-xs input-bordered w-[100px]" disabled
+                        value={transcriptOriginal[idx]?.end_at}
                       />
                     </div>
                   </div>
@@ -416,21 +455,28 @@ export default function TaskDetail() {
                   <div className="flex justify-between text-sm mb-1">
                     <div className="flex items-center gap-1">
                       <input
+                        className="input input-xs input-bordered w-[100px]"
+                        value={transcriptTranslated[idx]?.start_at}
+                        onChange={(e)=>OnChangeTranscriptStart(idx, e.target.value)}
+                      />
+                      <input
                         className="input input-xs input-bordered text-right w-[100px]"
                         value={transcriptTranslated[idx]?.end_at}
                         onChange={(e)=>OnChangeTranscriptEnd(idx, e.target.value)}
                       />
                       <button className="btn btn-xs btn-outline">{transcriptTranslated[idx]?.value.length} chs</button>
+                    </div>
+                    <div className="flex justify-end gap-1">
                       <button className="btn btn-xs btn-outline">{subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at)}s</button>
                       <button className="btn btn-xs btn-outline">{
                         (transcriptTranslated[idx]?.value.length / parseFloat(subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at))).toFixed(2)
                       } chs/s</button>
-                    </div>
-                    <div>
                       <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-xs btn-primary btn-outline"><MoreHorizontal size={14} /></div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-52">
+                          <li><a onClick={()=>AddOneBelowSubtitleByIdx(idx)}><Plus size={14} /> Add Below</a></li>
                           <li><a><Mic size={14} /> Record</a></li>
+                          <li><a onClick={()=>DeleteOneSubtitleByIdx(idx)}><Trash size={14} /> Delete</a></li>
                         </ul>
                       </div>
                     </div>
@@ -446,7 +492,7 @@ export default function TaskDetail() {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full flex">
           <div>
             <div className="text-lg flex items-center"><Circle className="mr-2" size={16} /> Original Video</div>
 
@@ -457,11 +503,21 @@ export default function TaskDetail() {
                 url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/original`}
                 playing={false}
                 controls={true}
+                config={{
+                  file: {
+                    attributes: {
+                      crossOrigin: "true",
+                    },
+                    tracks: [
+                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle`, srcLang: 'en', default: true}
+                    ],
+                  },
+                }}
               />}
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="">
             <div className="flex justify-between items-center">
               <div className="text-lg flex items-center">
                 <Globe className="mr-2" size={16} /> Translated Video
@@ -484,6 +540,16 @@ export default function TaskDetail() {
                 url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
                 playing={false}
                 controls={true}
+                config={{
+                  file: {
+                    attributes: {
+                      crossOrigin: "true",
+                    },
+                    tracks: [
+                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle?sub_type=translated`, srcLang: 'en', default: true}
+                    ],
+                  },
+                }}
               />}
             </div>
           </div>
@@ -505,7 +571,7 @@ function subtractTime(time1, time2) {
   const seconds = Math.floor(diffMs / 1000);
   const microseconds = diffMs % 1000;
 
-  return `${seconds}.${microseconds}`;
+  return `${seconds}.${String(microseconds).padStart(3, '0')}`;
 }
 
 function parseTime(timeString) {
