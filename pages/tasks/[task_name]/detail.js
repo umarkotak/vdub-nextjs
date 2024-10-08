@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Plus, RefreshCcw, Save, Trash } from "lucide-react"
+import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
@@ -39,6 +39,12 @@ export default function TaskDetail() {
     voice_pitch: "",
   })
   const [selectedStatus, setSelectedStatus] = useState("initialized")
+
+  var originalPlayerRef = useRef(null)
+  const [originalPlaying, setOriginalPlaying] = useState(false)
+
+  var translatedPlayerRef = useRef(null)
+  const [translatedPlaying, setTranslatedPlaying] = useState(false)
 
   useEffect(() => {
     InitializeData()
@@ -243,7 +249,7 @@ export default function TaskDetail() {
   }
 
   return (
-    <main className="flex flex-col min-h-screen p-4 gap-4">
+    <main className="flex flex-col p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
       <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
@@ -402,8 +408,8 @@ export default function TaskDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+        <div className="w-full col-span-6">
           <div className="text-xl mb-2">Transcript</div>
 
           <div className="h-[75vh] overflow-auto">
@@ -421,21 +427,28 @@ export default function TaskDetail() {
               <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-2" key={idx}>
                 <div className="mb-12">
                   <div className="flex justify-between text-sm mb-1">
-                    <div>
-                      <div className="dropdown dropdown-end">
-                        <button className="btn btn-xs btn-outline mr-1">{idx}</button>
-                        <div tabIndex={0} role="button" className={`btn btn-xs btn-outline
-                          ${(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length ? "btn-error" : "btn-success")}
-                        `}>
-                          {(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length
-                            ? `length diff (${transcriptTranslated[idx]?.value?.length - transcriptOriginal[idx]?.value?.length})`
-                            : "length same")}
-                        </div>
+                    <div className="flex items-center justify-start gap-1">
+                      <button className="btn btn-xs btn-outline">{idx}</button>
+                      <div className={`btn btn-xs btn-outline
+                        ${(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length
+                          ? "btn-error"
+                          : "btn-success")}
+                      `}>
+                        {(transcriptOriginal[idx]?.value?.length !== transcriptTranslated[idx]?.value?.length
+                          ? `length diff (${transcriptTranslated[idx]?.value?.length - transcriptOriginal[idx]?.value?.length})`
+                          : "length same")}
                       </div>
                     </div>
 
                     <div className="flex justify-end gap-1">
-                      <button className="btn btn-xs btn-outline">{transcriptOriginal[idx]?.value.length} chs</button>
+                      <button
+                        className="btn btn-xs btn-outline"
+                        onClick={()=>{
+                          originalPlayerRef.current?.seekTo(parseTime(transcriptOriginal[idx]?.start_at)/1000);
+                          setOriginalPlaying(true);
+                          setTranslatedPlaying(false);
+                        }}
+                      ><Play size={14} /> {transcriptOriginal[idx]?.value.length} chs</button>
                       <input
                         className="input input-xs input-bordered w-[100px]" disabled
                         value={transcriptOriginal[idx]?.start_at}
@@ -464,7 +477,14 @@ export default function TaskDetail() {
                         value={transcriptTranslated[idx]?.end_at}
                         onChange={(e)=>OnChangeTranscriptEnd(idx, e.target.value)}
                       />
-                      <button className="btn btn-xs btn-outline">{transcriptTranslated[idx]?.value.length} chs</button>
+                      <button
+                        className="btn btn-xs btn-outline"
+                        onClick={()=>{
+                          translatedPlayerRef.current?.seekTo(parseTime(transcriptTranslated[idx]?.start_at)/1000);
+                          setTranslatedPlaying(true);
+                          setOriginalPlaying(false);
+                        }}
+                      ><Play size={14} /> {transcriptTranslated[idx]?.value.length} chs</button>
                     </div>
                     <div className="flex justify-end gap-1">
                       <button className="btn btn-xs btn-outline">{subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at)}s</button>
@@ -492,33 +512,9 @@ export default function TaskDetail() {
           </div>
         </div>
 
-        <div className="w-full flex">
-          <div>
-            <div className="text-lg flex items-center"><Circle className="mr-2" size={16} /> Original Video</div>
-
-            <div className="border rounded-lg overflow-hidden mt-2">
-              {showVideoPlayer && <ReactPlayer
-                className="border rounded-lg overflow-hidden"
-                width={"100%"}
-                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/original`}
-                playing={false}
-                controls={true}
-                config={{
-                  file: {
-                    attributes: {
-                      crossOrigin: "true",
-                    },
-                    tracks: [
-                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle`, srcLang: 'en', default: true}
-                    ],
-                  },
-                }}
-              />}
-            </div>
-          </div>
-
+        <div className="w-full col-span-4 flex flex-col gap-4">
           <div className="">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-white p-2 rounded-lg">
               <div className="text-lg flex items-center">
                 <Globe className="mr-2" size={16} /> Translated Video
               </div>
@@ -536,9 +532,10 @@ export default function TaskDetail() {
 
             <div className="border rounded-lg overflow-hidden mt-2">
               {showVideoPlayer && <ReactPlayer
+                ref={translatedPlayerRef}
                 width={"100%"}
                 url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
-                playing={false}
+                playing={translatedPlaying}
                 controls={true}
                 config={{
                   file: {
@@ -547,6 +544,36 @@ export default function TaskDetail() {
                     },
                     tracks: [
                       {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle?sub_type=translated`, srcLang: 'en', default: true}
+                    ],
+                  },
+                }}
+              />}
+            </div>
+          </div>
+          
+          <div className="">
+            <div className="flex justify-between items-center bg-white p-2 rounded-lg">
+              <div className="text-lg flex items-center">
+                <Circle className="mr-2" size={16} /> Original Video
+              </div>
+              <div>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden mt-2">
+              {showVideoPlayer && <ReactPlayer
+                ref={originalPlayerRef}
+                width={"100%"}
+                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/original`}
+                playing={originalPlaying}
+                controls={true}
+                config={{
+                  file: {
+                    attributes: {
+                      crossOrigin: "true",
+                    },
+                    tracks: [
+                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle`, srcLang: 'en', default: true}
                     ],
                   },
                 }}
