@@ -216,17 +216,17 @@ export default function TaskDetail() {
     if (!confirm(`Are you sure want to delete subtitle?`)) { return }
 
     try {
-      // const response = await vdubAPI.PatchManualUpdateStatus("", {}, {
-      //   task_name: params.task_name,
-      //   status: selectedStatus
-      // })
-      // const body = await response.json()
-      // if (response.status !== 200) {
-      //   alert(`Start task failed: ${JSON.stringify(body)}`)
-      //   return
-      // }
+      const response = await vdubAPI.PostTranscriptDeleteByIdx("", {}, {
+        task_name: params.task_name,
+        idx: idx
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Delete transcript failed: ${JSON.stringify(body)}`)
+        return
+      }
 
-      // InitializeData()
+      InitializeData()
     } catch (e) { alert(e) }
   }
 
@@ -234,17 +234,17 @@ export default function TaskDetail() {
     if (!confirm(`Are you sure want to add subtitle?`)) { return }
 
     try {
-      // const response = await vdubAPI.PatchManualUpdateStatus("", {}, {
-      //   task_name: params.task_name,
-      //   status: selectedStatus
-      // })
-      // const body = await response.json()
-      // if (response.status !== 200) {
-      //   alert(`Start task failed: ${JSON.stringify(body)}`)
-      //   return
-      // }
+      const response = await vdubAPI.PostTranscriptAddBellowByIdx("", {}, {
+        task_name: params.task_name,
+        idx: idx
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Add transcript failed: ${JSON.stringify(body)}`)
+        return
+      }
 
-      // InitializeData()
+      InitializeData()
     } catch (e) { alert(e) }
   }
 
@@ -495,7 +495,7 @@ export default function TaskDetail() {
                         <div tabIndex={0} role="button" className="btn btn-xs btn-primary btn-outline"><MoreHorizontal size={14} /></div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-52">
                           <li><a onClick={()=>AddOneBelowSubtitleByIdx(idx)}><Plus size={14} /> Add Below</a></li>
-                          <li><a><Mic size={14} /> Record</a></li>
+                          {/* <li><a><Mic size={14} /> Record</a></li> */}
                           <li><a onClick={()=>DeleteOneSubtitleByIdx(idx)}><Trash size={14} /> Delete</a></li>
                         </ul>
                       </div>

@@ -56,6 +56,14 @@ class VdubAPI {
     return this.Delete(`/vdub/api/dubb/task/${params.task_name}`, authToken, h, params)
   }
 
+  async PostTranscriptDeleteByIdx(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.idx}/delete`, authToken, h, params)
+  }
+
+  async PostTranscriptAddBellowByIdx(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.idx}/add_next`, authToken, h, params)
+  }
+
   async Get(path, authToken, h, params) {
     var uri = `${this.VdubHost}${path}?${new URLSearchParams(params)}`
     const response = await fetch(uri, {
