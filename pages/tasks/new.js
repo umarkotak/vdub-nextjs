@@ -21,7 +21,7 @@ export default function TaskNew() {
 
   async function PostTaskCreate() {
     try {
-      const response = await vdubAPI.PostTaskCreate("", {}, createParams)
+      const response = await vdubAPI.PostTaskCreateV2("", {}, createParams)
       const body = await response.json()
       if (response.status !== 200) {
         alert(`Start task failed: ${JSON.stringify(body)}`)

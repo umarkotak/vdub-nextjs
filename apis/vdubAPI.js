@@ -44,6 +44,10 @@ class VdubAPI {
     return this.Post(`/vdub/api/dubb/start`, authToken, h, params)
   }
 
+  async PostTaskCreateV2(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/startv2`, authToken, h, params)
+  }
+
   async PatchManualUpdateStatus(authToken, h, params) {
     return this.Patch(`/vdub/api/dubb/task/${params.task_name}/status`, authToken, h, params)
   }

@@ -57,7 +57,7 @@ export default function TaskList() {
 
   async function PostTaskCreateForRetry(taskName) {
     try {
-      const response = await vdubAPI.PostTaskCreate("", {}, {
+      const response = await vdubAPI.PostTaskCreateV2("", {}, {
         "task_name": taskName,
         "youtube_url": "retry",
         "voice_name": "retry",

@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash } from "lucide-react"
+import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
@@ -159,7 +159,7 @@ export default function TaskDetail() {
     if (!confirm(`Are you sure want to regenerate video with updated voice?`)) { return }
 
     try {
-      const response = await vdubAPI.PostTaskCreate("", {}, {
+      const response = await vdubAPI.PostTaskCreateV2("", {}, {
         ...updateTaskData,
         task_name: params.task_name,
         force_start_from: "transcript_translated"
@@ -248,6 +248,27 @@ export default function TaskDetail() {
     } catch (e) { alert(e) }
   }
 
+  async function PostTaskCreateForRetry(taskName) {
+    if (!confirm(`Are you sure want to retry this task?`)) { return }
+
+    try {
+      const response = await vdubAPI.PostTaskCreateV2("", {}, {
+        "task_name": taskName,
+        "youtube_url": "retry",
+        "voice_name": "retry",
+        "voice_rate": "retry",
+        "voice_pitch": "retry",
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Retry task failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      InitializeData()
+    } catch (e) { alert(e) }
+  }
+
   return (
     <main className="flex flex-col p-4 gap-4">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -255,15 +276,25 @@ export default function TaskDetail() {
       <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center">
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
-          {taskDetail?.state_human?.is_running && <div className="badge badge-neutral flex items-center ml-4">
-            <span className="loading loading-spinner loading-xs mr-1"></span>
-            <span>task running - {taskDetail?.state_human?.current_status_human}</span>
+          {taskDetail?.state_human?.is_running
+            ? <div className="badge badge-neutral flex items-center ml-4">
+              <span className="loading loading-spinner loading-xs mr-1"></span>
+              <span>task running - {taskDetail?.state_human?.current_status_human}</span>
+            </div>
+            : taskDetail?.state_human?.completed
+            ? <div className="badge badge-neutral flex items-center ml-4">completed</div>
+            : <div className="badge badge-error flex items-center ml-4">
+              FAIL - {taskDetail?.state_human?.current_status_human}
           </div>}
         </div>
         <div className="flex">
           <button className="btn btn-primary btn-sm btn-outline" onClick={()=>InitializeData()}>
             <RefreshCcw size={14} />
             Refresh
+          </button>
+          <button className="btn btn-primary btn-sm btn-outline ml-2" onClick={()=>PostTaskCreateForRetry(params?.task_name)}>
+            <Play size={14} />
+            Retry
           </button>
           {/* SIDE DRAWER FOR EDIT */}
           <div className="drawer drawer-end">
@@ -358,42 +389,30 @@ export default function TaskDetail() {
                   </div>
                 </details>
 
-                <div className="text-lg mt-4">
-                  Action
-                </div>
-                <div className="flex flex-wrap gap-1 justify-start mt-1">
-                  <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
-                    <button
-                      className="btn btn-primary btn-outline btn-xs"
-                      onClick={()=>PostTaskUpdateVoice()}
-                    ><Circle size={14} /> update voice</button>
-                  </div>
+                <div className="flex items-center justify-start mt-8 gap-2">
                   <div className="tooltip" data-tip="will readjust the voice based on translated transcript.">
                     <button
-                      className="btn btn-primary btn-outline btn-xs"
+                      className="btn btn-primary btn-outline btn-sm"
                       onClick={()=>PostUpdateTranscript()}
-                    ><Circle size={14} /> update transcript</button>
+                    ><Save size={14} /> Save Transcript</button>
+                  </div>
+                  <div className="tooltip" data-tip="only save transcript and value, no process executed.">
+                    <button
+                      className="btn btn-primary btn-outline btn-sm"
+                      onClick={()=>{}}
+                    ><Save size={14} /> Save Setting</button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end mt-8">
-                  <div className="tooltip tooltip-left" data-tip="only save transcript and value, no process executed.">
-                    <button className="btn btn-primary btn-outline btn-sm"><Save size={14} /> Save</button>
-                  </div>
-                </div>
+                <div className="w-full border-b border-solid border-black my-4"></div>
 
-                <div className="w-full border-b border-solid border-black my-2">
-                </div>
-
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 justify-start text-left">
                   <div className="flex justify-between items-center">
                     <span>
-                      Manual Update Status
+                      Status Action
                     </span>
-                    <button className="btn btn-primary btn-outline btn-sm" onClick={()=>ManualUpdateStatus()}>
-                      <Pencil size={14} /> Update
-                    </button>
                   </div>
+
                   <select value={selectedStatus} onChange={(e)=>{setSelectedStatus(e.target.value)}} className="select select-sm select-bordered w-full">
                     {stateOptions.map((option) => (
                       <option key={option.value} value={option.value} id={option.value}>
@@ -401,6 +420,26 @@ export default function TaskDetail() {
                       </option>
                     ))}
                   </select>
+
+                  <div className="flex justify-start gap-2">
+                    <button className="btn btn-primary btn-outline btn-xs" onClick={()=>ManualUpdateStatus()}>
+                      <Pencil size={14} /> Update
+                    </button>
+
+                    <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        onClick={()=>PostTaskUpdateVoice()}
+                      ><Volume2Icon size={14} /> Update Voice</button>
+                    </div>
+
+                    <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        onClick={()=>PostTaskUpdateVoice()}
+                      ><RefreshCcw size={14} /> Restart From Status</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -480,7 +519,7 @@ export default function TaskDetail() {
                       <button
                         className="btn btn-xs btn-outline"
                         onClick={()=>{
-                          translatedPlayerRef.current?.seekTo(parseTime(transcriptTranslated[idx]?.start_at)/1000);
+                          translatedPlayerRef.current?.seekTo(Math.floor(parseTime(transcriptTranslated[idx]?.start_at)/1000));
                           setTranslatedPlaying(true);
                           setOriginalPlaying(false);
                         }}
@@ -550,7 +589,7 @@ export default function TaskDetail() {
               />}
             </div>
           </div>
-          
+
           <div className="">
             <div className="flex justify-between items-center bg-white p-2 rounded-lg">
               <div className="text-lg flex items-center">
