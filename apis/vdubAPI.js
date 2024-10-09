@@ -68,6 +68,10 @@ class VdubAPI {
     return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.idx}/add_next`, authToken, h, params)
   }
 
+  async PostQuickShiftTranscript(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/quick_shift`, authToken, h, params)
+  }
+
   async Get(path, authToken, h, params) {
     var uri = `${this.VdubHost}${path}?${new URLSearchParams(params)}`
     const response = await fetch(uri, {

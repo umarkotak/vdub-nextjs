@@ -135,16 +135,6 @@ export default function TaskDetail() {
     } catch (e) { console.error(e) }
   }
 
-  // var minutes = 0.1
-  // const intervalRef = useRef(null)
-  // useEffect(() => {
-  //   const execCallback = () => {
-  //     GetTaskList()
-  //   }
-  //   intervalRef.current = setInterval(execCallback, minutes * 60 * 1000)
-  //   return () => clearInterval(intervalRef.current)
-  // }, [])
-
   function OnChange(e, field) {
     if (e?.target?.value) {
       setUpdateTaskData({...updateTaskData, [field]: e.target.value})
@@ -269,11 +259,28 @@ export default function TaskDetail() {
     } catch (e) { alert(e) }
   }
 
+  async function PostQuickShiftTranscript(taskName) {
+    if (!confirm(`Are you sure want do quick shift transcript?, This action cannot be reverted!`)) { return }
+
+    try {
+      const response = await vdubAPI.PostQuickShiftTranscript("", {}, {
+        "task_name": taskName,
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Quick shift transcript failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      InitializeData()
+    } catch (e) { alert(e) }
+  }
+
   return (
-    <main className="flex flex-col p-4 gap-4">
+    <main className="flex flex-col p-4 gap-2">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
-      <div className="col-span-2 w-full bg-white p-2 my-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
+      <div className="col-span-2 w-full bg-white border border-black p-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center">
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
           {taskDetail?.state_human?.is_running
@@ -306,7 +313,7 @@ export default function TaskDetail() {
             <div className="drawer-side z-10">
               <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
 
-              <div className="menu p-4 w-3/4 max-w-md min-h-full bg-base-200 text-base-content">
+              <div className="menu p-4 w-3/4 max-w-lg min-h-full bg-base-200 text-base-content">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold flex items-center"><Circle size={18} className="mr-2" /> {params?.task_name}</span>
 
@@ -390,13 +397,13 @@ export default function TaskDetail() {
                 </details>
 
                 <div className="flex items-center justify-start mt-8 gap-2">
-                  <div className="tooltip" data-tip="will readjust the voice based on translated transcript.">
+                  <div className="tooltip" data-tip="save the new adjusted transcript.">
                     <button
                       className="btn btn-primary btn-outline btn-sm"
                       onClick={()=>PostUpdateTranscript()}
                     ><Save size={14} /> Save Transcript</button>
                   </div>
-                  <div className="tooltip" data-tip="only save transcript and value, no process executed.">
+                  <div className="tooltip" data-tip="save the new setting, no process executed.">
                     <button
                       className="btn btn-primary btn-outline btn-sm"
                       onClick={()=>{}}
@@ -408,9 +415,7 @@ export default function TaskDetail() {
 
                 <div className="flex flex-col gap-4 justify-start text-left">
                   <div className="flex justify-between items-center">
-                    <span>
-                      Status Action
-                    </span>
+                    <span>Status Action</span>
                   </div>
 
                   <select value={selectedStatus} onChange={(e)=>{setSelectedStatus(e.target.value)}} className="select select-sm select-bordered w-full">
@@ -422,22 +427,41 @@ export default function TaskDetail() {
                   </select>
 
                   <div className="flex justify-start gap-2">
-                    <button className="btn btn-primary btn-outline btn-xs" onClick={()=>ManualUpdateStatus()}>
-                      <Pencil size={14} /> Update
-                    </button>
+                    <div className="tooltip" data-tip="will update status based on select box.">
+                      <button className="btn btn-primary btn-outline btn-xs" onClick={()=>ManualUpdateStatus()}>
+                        <Pencil size={14} /> Update
+                      </button>
+                    </div>
 
-                    <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
+                    <div className="tooltip" data-tip="will regenerate voice based on new setting and transcript.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
                         onClick={()=>PostTaskUpdateVoice()}
-                      ><Volume2Icon size={14} /> Update Voice</button>
+                      ><Volume2Icon size={14} /> Regenerate Voice</button>
                     </div>
 
-                    <div className="tooltip" data-tip="will update the voice configuration name, rate & pitch.">
+                    <div className="tooltip" data-tip="will restart the process from selected status.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
                         onClick={()=>PostTaskUpdateVoice()}
                       ><RefreshCcw size={14} /> Restart From Status</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full border-b border-solid border-black my-4"></div>
+
+                <div className="flex flex-col gap-4 justify-start text-left">
+                  <div className="flex justify-between items-center">
+                    <span>Utility</span>
+                  </div>
+
+                  <div className="flex justify-start gap-2">
+                    <div className="tooltip" data-tip="will shift the transcript to maximize time gap.">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        onClick={()=>PostQuickShiftTranscript()}
+                      ><RefreshCcw size={14} /> Quick Shift Transcript</button>
                     </div>
                   </div>
                 </div>
@@ -446,6 +470,24 @@ export default function TaskDetail() {
           </div>
         </div>
       </div>
+
+      <details className="collapse bg-base-200">
+        <summary className="collapse-title w-full p-0 min-h-0">
+          <div className="flex justify-between items-center bg-white p-1 h-full mb-0 hover:bg-slate-100">
+            <span>Status: {taskDetail?.state_human?.current_status_human}</span>
+            <span><ChevronRight size={14} /></span>
+          </div>
+        </summary>
+        <div className="collapse-content bg-white p-1">
+          <ul className="steps steps-horizontal text-xs">
+            {taskDetail?.state_human?.progresses.map((oneProg) => (
+              <li key={oneProg.name} className={`step ${oneProg.progress === "done" ? "step-success" : ""}`}>
+                {oneProg.name_human}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </details>
 
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
         <div className="w-full col-span-6">
