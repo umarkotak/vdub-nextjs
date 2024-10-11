@@ -444,7 +444,7 @@ export default function TaskDetail() {
                     <div className="tooltip" data-tip="will restart the process from selected status.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
-                        onClick={()=>PostTaskUpdateVoice()}
+                        onClick={()=>{}}
                       ><RefreshCcw size={14} /> Restart From Status</button>
                     </div>
                   </div>
