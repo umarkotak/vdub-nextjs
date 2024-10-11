@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { Check, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon } from "lucide-react"
+import { LogsIcon, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon, CodeIcon } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
@@ -295,13 +295,14 @@ export default function TaskDetail() {
           </div>}
         </div>
         <div className="flex">
-          <button className="btn btn-primary btn-sm btn-outline" onClick={()=>InitializeData()}>
-            <RefreshCcw size={14} />
-            Refresh
+          <Link className="btn btn-primary btn-sm btn-outline" href={`/tasks/${params?.task_name}/log`}>
+            <CodeIcon size={14} /> Log
+          </Link>
+          <button className="btn btn-primary btn-sm btn-outline ml-2" onClick={()=>InitializeData()}>
+            <RefreshCcw size={14} /> Refresh
           </button>
           <button className="btn btn-primary btn-sm btn-outline ml-2" onClick={()=>PostTaskCreateForRetry(params?.task_name)}>
-            <Play size={14} />
-            Retry
+            <Play size={14} /> Retry
           </button>
           {/* SIDE DRAWER FOR EDIT */}
           <div className="drawer drawer-end">

@@ -36,6 +36,10 @@ class VdubAPI {
     return this.Get(`/vdub/api/dubb/task/${params.task_name}/status`, authToken, h, params)
   }
 
+  async GetTaskLog(authToken, h, params) {
+    return this.Get(`/vdub/api/dubb/task/${params.task_name}/log`, authToken, h, params)
+  }
+
   async GetTranscript(authToken, h, params) {
     return this.Get(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.type}`, authToken, h, params)
   }
