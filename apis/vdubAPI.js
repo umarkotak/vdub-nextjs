@@ -81,12 +81,13 @@ class VdubAPI {
   }
 
   async Get(path, authToken, h, params) {
-    var uri = `${this.VdubHost}${path}?${new URLSearchParams(params)}`
+    var uri = `${this.GenHost()}${path}?${new URLSearchParams(params)}`
     const response = await fetch(uri, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
+        'x-direct-username': this.GenDirectUsername(),
         ...h,
       }
     })
@@ -94,12 +95,13 @@ class VdubAPI {
   }
 
   async Delete(path, authToken, h, params) {
-    var uri = `${this.VdubHost}${path}?${new URLSearchParams(params)}`
+    var uri = `${this.GenHost()}${path}?${new URLSearchParams(params)}`
     const response = await fetch(uri, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
+        'x-direct-username': this.GenDirectUsername(),
         ...h,
       },
     })
@@ -107,12 +109,13 @@ class VdubAPI {
   }
 
   async Post(path, authToken, h, params) {
-    var uri = `${this.VdubHost}${path}`
+    var uri = `${this.GenHost()}${path}`
     const response = await fetch(uri, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
+        'x-direct-username': this.GenDirectUsername(),
         ...h,
       },
       body: JSON.stringify(params),
@@ -121,17 +124,40 @@ class VdubAPI {
   }
 
   async Patch(path, authToken, h, params) {
-    var uri = `${this.VdubHost}${path}`
+    var uri = `${this.GenHost()}${path}`
     const response = await fetch(uri, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
+        'x-direct-username': this.GenDirectUsername(),
         ...h,
       },
       body: JSON.stringify(params),
     })
     return response
+  }
+
+  GenHost() {
+    try {
+      if (window && localStorage && localStorage.getItem("VDUB:SETTING:SERVER_URL") && localStorage.getItem("VDUB:SETTING:SERVER_URL") !== "") {
+        return localStorage.getItem("VDUB:SETTING:SERVER_URL")
+      }
+      return this.VdubHost
+    } catch(e) {
+      return this.VdubHost
+    }
+  }
+
+  GenDirectUsername() {
+    try {
+      if (window && localStorage && localStorage.getItem("VDUB:SETTING:SERVER_USERNAME") && localStorage.getItem("VDUB:SETTING:SERVER_USERNAME") !== "") {
+        return localStorage.getItem("VDUB:SETTING:SERVER_USERNAME")
+      }
+      return ""
+    } catch(e) {
+      return ""
+    }
   }
 
   EdgeVoices() {
