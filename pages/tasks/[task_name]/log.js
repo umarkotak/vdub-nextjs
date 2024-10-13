@@ -116,6 +116,11 @@ export default function TaskDetail() {
               FAIL - {taskDetail?.state_human?.current_status_human}
           </div>}
         </div>
+        <div className="flex">
+          <button className="btn btn-primary btn-sm btn-outline" onClick={()=>InitializeData()}>
+            <RefreshCcw size={14} /> Refresh
+          </button>
+        </div>
       </div>
 
       <details className="collapse bg-base-200">

@@ -56,6 +56,10 @@ class VdubAPI {
     return this.Patch(`/vdub/api/dubb/task/${params.task_name}/status`, authToken, h, params)
   }
 
+  async PatchTaskUpdateSetting(authToken, h, params) {
+    return this.Patch(`/vdub/api/dubb/task/${params.task_name}/setting`, authToken, h, params)
+  }
+
   async PatchUpdateTranscript(authToken, h, params) {
     return this.Patch(`/vdub/api/dubb/task/${params.task_name}/transcript`, authToken, h, params)
   }

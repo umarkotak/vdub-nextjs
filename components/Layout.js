@@ -1,4 +1,4 @@
-import { Briefcase, CircleUser, Headphones, Home, Layers3, LayoutTemplate, Menu } from 'lucide-react'
+import { Briefcase, CircleUser, Headphones, Home, Layers3, LayoutTemplate, Menu, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
@@ -46,6 +46,12 @@ export default function Layout({ children }) {
                   className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/tasks")}`}
                   href="/tasks"
                 ><LayoutTemplate size={14} /> Tasks</Link>
+              </li>
+              <li>
+                <Link
+                  className={`btn btn-sm btn-primary btn-outline ${genActive(pathname, "/setting")}`}
+                  href="/setting"
+                ><Settings size={14} /> Setting</Link>
               </li>
             </ul>
           </div>

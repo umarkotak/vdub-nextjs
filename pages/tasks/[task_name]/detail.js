@@ -145,14 +145,15 @@ export default function TaskDetail() {
     }
   }
 
-  async function PostTaskUpdateVoice() {
-    if (!confirm(`Are you sure want to regenerate video with updated voice?`)) { return }
+  async function PostTaskStartForceStartFrom(fromStatus) {
+    if (!confirm(`Are you sure want to reprocess this?`)) { return }
 
     try {
       const response = await vdubAPI.PostTaskCreateV2("", {}, {
         ...updateTaskData,
         task_name: params.task_name,
-        force_start_from: "transcript_translated"
+        // force_start_from: "transcript_translated",
+        force_start_from: fromStatus,
       })
       const body = await response.json()
       if (response.status !== 200) {
@@ -161,6 +162,23 @@ export default function TaskDetail() {
       }
 
       router.push("/tasks")
+    } catch (e) { alert(e) }
+  }
+
+  async function PatchTaskUpdateSetting() {
+    if (!confirm(`Are you sure want to update task setting?`)) { return }
+
+    try {
+      const response = await vdubAPI.PatchTaskUpdateSetting("", {}, {
+        ...updateTaskData,
+        task_name: params.task_name,
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Update task setting failed: ${JSON.stringify(body)}`)
+        return
+      }
+
     } catch (e) { alert(e) }
   }
 
@@ -407,7 +425,7 @@ export default function TaskDetail() {
                   <div className="tooltip" data-tip="save the new setting, no process executed.">
                     <button
                       className="btn btn-primary btn-outline btn-sm"
-                      onClick={()=>{}}
+                      onClick={()=>PatchTaskUpdateSetting()}
                     ><Save size={14} /> Save Setting</button>
                   </div>
                 </div>
@@ -437,14 +455,14 @@ export default function TaskDetail() {
                     <div className="tooltip" data-tip="will regenerate voice based on new setting and transcript.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
-                        onClick={()=>PostTaskUpdateVoice()}
+                        onClick={()=>PostTaskStartForceStartFrom("transcript_translated")}
                       ><Volume2Icon size={14} /> Regenerate Voice</button>
                     </div>
 
                     <div className="tooltip" data-tip="will restart the process from selected status.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
-                        onClick={()=>{}}
+                        onClick={()=>PostTaskStartForceStartFrom(selectedStatus)}
                       ><RefreshCcw size={14} /> Restart From Status</button>
                     </div>
                   </div>
