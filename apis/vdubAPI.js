@@ -76,6 +76,10 @@ class VdubAPI {
     return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.idx}/add_next`, authToken, h, params)
   }
 
+  async PostTranscriptGenPreviewVoice(authToken, h, params) {
+    return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/${params.idx}/gen_preview_voice`, authToken, h, params)
+  }
+
   async PostQuickShiftTranscript(authToken, h, params) {
     return this.Post(`/vdub/api/dubb/task/${params.task_name}/transcript/quick_shift`, authToken, h, params)
   }

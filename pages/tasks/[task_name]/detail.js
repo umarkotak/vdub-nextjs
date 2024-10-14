@@ -4,11 +4,12 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { LogsIcon, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon, CodeIcon } from "lucide-react"
+import { LogsIcon, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon, CodeIcon, FileAudio } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
 import vdubAPI from "@/apis/vdubAPI"
+import ReactAudioPlayer from "react-audio-player"
 
 const stateOptions = [
   {value: "initialized", label: "initialized"},
@@ -253,6 +254,25 @@ export default function TaskDetail() {
       }
 
       InitializeData()
+    } catch (e) { alert(e) }
+  }
+
+  async function GeneratedVoiceForPreview(idx) {
+    if (!confirm(`Are you sure want to generate preview voice?`)) { return }
+
+    try {
+      const response = await vdubAPI.PostTranscriptGenPreviewVoice("", {}, {
+        task_name: params.task_name,
+        idx: idx
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Generating preview voice failed failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      alert(`Generating previce voice success!`)
+      window.location.reload()
     } catch (e) { alert(e) }
   }
 
@@ -593,7 +613,15 @@ export default function TaskDetail() {
                       } chs/s</button>
                       <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-xs btn-primary btn-outline"><MoreHorizontal size={14} /></div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-52">
+                        <ul tabIndex={0} className="dropdown-content z-[10] menu p-1 shadow-md bg-base-100 rounded-box border border-black">
+                          <li><a onClick={()=>GeneratedVoiceForPreview(idx)}><FileAudio size={14} /> Generate Audio</a></li>
+                          <li>
+                            <ReactAudioPlayer
+                              id={`${idx}-${getNowUnixNano()}`}
+                              src={`http://localhost:29000/vdub/api/dubb/task/${params?.task_name}/transcript/${idx}/preview_voice?unix=${getNowUnixNano()}`}
+                              controls
+                            />
+                          </li>
                           <li><a onClick={()=>AddOneBelowSubtitleByIdx(idx)}><Plus size={14} /> Add Below</a></li>
                           {/* <li><a><Mic size={14} /> Record</a></li> */}
                           <li><a onClick={()=>DeleteOneSubtitleByIdx(idx)}><Trash size={14} /> Delete</a></li>
@@ -706,4 +734,8 @@ function parseTime(timeString) {
   return (
     (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000 + parts[3]
   );
+}
+
+function getNowUnixNano() {
+  return Date.now() * 1000000; // Multiply milliseconds by 10^6 to get nanoseconds
 }
