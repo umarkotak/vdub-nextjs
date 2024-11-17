@@ -141,22 +141,24 @@ export default function TaskDetail() {
         </div>
       </details>
 
-      <div className="container mx-auto max-w-[1024px] flex flex-col gap-3">
+      <div className="container mx-auto max-w-[1024px]">
         <span className="text-xl">Log</span>
 
-        {taskLogs.map((taskLog, idx) => (
-          <div className={`h-10 p-2 rounded-lg ${
-            taskLog.Level === "INFO"
-            ? "bg-blue-100"
-            : taskLog.Level === "ERROR"
-            ? "bg-red-100"
-            : "bg-white"
-          }`} key={`${idx}-${taskLog.Timestamp}`}>
-            <span>{taskLog.Level}</span>
-            <span> | </span>
-            <span>{taskLog.Message}</span>
-          </div>
-        ))}
+        <div className="mt-3 flex flex-col gap-3">
+          {taskLogs.map((taskLog, idx) => (
+            <div className={`p-2 rounded-lg ${
+              taskLog.Level === "INFO"
+              ? "bg-blue-100"
+              : taskLog.Level === "ERROR"
+              ? "bg-red-100"
+              : "bg-white"
+            }`} key={`${idx}-${taskLog.Timestamp}`}>
+              <span>{taskLog.Level}</span>
+              <span> | </span>
+              <span>{taskLog.Message}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   )
