@@ -10,8 +10,8 @@ export default function Setting() {
   }, [])
 
   function InitializeData() {
-    setServerUrl(localStorage.getItem("VDUB:SETTING:SERVER_URL"))
-    setServerUsername(localStorage.getItem("VDUB:SETTING:SERVER_USERNAME"))
+    setServerUrl(localStorage.getItem("VDUB:SETTING:SERVER_URL") || "")
+    setServerUsername(localStorage.getItem("VDUB:SETTING:SERVER_USERNAME") || "")
   }
 
   function SaveSetting() {

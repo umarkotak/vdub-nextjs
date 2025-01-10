@@ -5,7 +5,7 @@ class VdubAPI {
     }
 
     this.VdubHost = "http://localhost:29000"
-    this.VdubHost = "https://vdubb-be.cloudflare-animapu-1.site"
+    this.VdubHost = "https://vdub-api.cloudflare-avatar-id-1.site"
   }
 
   // EXAMPLE
