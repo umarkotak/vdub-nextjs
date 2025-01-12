@@ -44,6 +44,7 @@ export default function TaskDetail() {
     "title": "", "description": "",
   })
   const [isUploading, setIsUploading] = useState(false)
+  const [volume, setVolume] = useState("1.2")
 
   var originalPlayerRef = useRef(null)
   const [originalPlaying, setOriginalPlaying] = useState(false)
@@ -159,6 +160,7 @@ export default function TaskDetail() {
         task_name: params.task_name,
         // force_start_from: "transcript_translated",
         force_start_from: fromStatus,
+        volume: volume,
       })
       const body = await response.json()
       if (response.status !== 200) {
@@ -497,6 +499,11 @@ export default function TaskDetail() {
                       </option>
                     ))}
                   </select>
+
+                  <label className="input input-sm input-bordered flex items-center gap-2">
+                    Volume
+                    <input type="text" className="grow" placeholder="1.2" onChange={(e)=>setVolume(e.target.value)} value={volume} />
+                  </label>
 
                   <div className="flex justify-start gap-2">
                     <div className="tooltip" data-tip="will update status based on select box.">
