@@ -43,6 +43,7 @@ export default function TaskDetail() {
   const [uploadParams, setUploadParams] = useState({
     "title": "", "description": "",
   })
+  const [isUploading, setIsUploading] = useState(false)
 
   var originalPlayerRef = useRef(null)
   const [originalPlaying, setOriginalPlaying] = useState(false)
@@ -321,11 +322,13 @@ export default function TaskDetail() {
     if (!confirm(`Are you sure want to upload this video to youtube?`)) { return }
 
     try {
+      setIsUploading(true)
       const response = await vdubAPI.PostUploadToYoutube("", {}, {
         "task_name": params.task_name,
         "title": uploadParams.title,
         "description": uploadParams.description,
       })
+      setIsUploading(false)
       const body = await response.json()
       if (response.status !== 200) {
         alert(`Upload to youtube failed: ${JSON.stringify(body)}`)
@@ -338,14 +341,17 @@ export default function TaskDetail() {
       })
 
       InitializeData()
-    } catch (e) { alert(e) }
+    } catch (e) {
+      setIsUploading(false)
+      alert(e)
+    }
   }
 
   return (
     <main className="flex flex-col p-4 gap-2">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
 
-      <div className="col-span-2 w-full bg-white border border-black p-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
+      <div className="col-span-2 w-full bg-white border border-black p-2 rounded-lg flex justify-between gap-2 items-center sticky top-0 z-40 overflow-auto">
         <div className="flex items-center">
           <span className="text-lg font-bold flex items-center"><Circle size={24} className="mr-2" /> {params?.task_name}</span>
           {taskDetail?.state_human?.is_running
@@ -374,7 +380,7 @@ export default function TaskDetail() {
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content">
               {/* Page content here */}
-              <label htmlFor="my-drawer-4" className="drawer-button btn btn-primary btn-outline btn-sm ml-2"><Edit size={14} /> Edit</label>
+              <label htmlFor="my-drawer-4" className="drawer-button btn btn-primary btn-outline btn-sm ml-2"><div className="flex gap-2"><Edit size={14} /> Edit</div></label>
             </div>
             <div className="drawer-side z-10">
               <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
@@ -557,8 +563,29 @@ export default function TaskDetail() {
                     <div className="tooltip" data-tip="upload the dubbed video to youtube">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
+                        disabled={isUploading}
                         onClick={()=>PostUploadToYoutube()}
-                      ><UploadIcon size={14} /> Upload Youtube</button>
+                      ><UploadIcon size={14} /> { isUploading ? <span className="loading loading-spinner loading-xs mr-1"></span> :
+                        "Upload Youtube"
+                      }</button>
+                    </div>
+                    <div className="tooltip" data-tip="upload the dubbed video to instagram">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        disabled={isUploading}
+                        onClick={()=>PostUploadToYoutube()}
+                      ><UploadIcon size={14} /> { isUploading ? <span className="loading loading-spinner loading-xs mr-1"></span> :
+                        "Upload Instagram"
+                      }</button>
+                    </div>
+                    <div className="tooltip" data-tip="upload the dubbed video to tiktok">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        disabled={isUploading}
+                        onClick={()=>PostUploadToYoutube()}
+                      ><UploadIcon size={14} /> { isUploading ? <span className="loading loading-spinner loading-xs mr-1"></span> :
+                        "Upload Tiktok"
+                      }</button>
                     </div>
                   </div>
                 </div>
@@ -587,11 +614,11 @@ export default function TaskDetail() {
       </details>
 
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
-        <div className="w-full col-span-6">
+        <div className="w-full lg:col-span-6">
           <div className="text-xl mb-2">Transcript</div>
 
           <div className="h-[75vh] overflow-auto">
-            <div className="grid grid-cols-2 w-full tracking-wide gap-2 sticky top-0 rounded-lg z-20">
+            <div className="grid grid-cols-2 w-full tracking-wide gap-2 sticky top-0 rounded-lg z-30">
               <div>
                 <div className="text-center bg-white py-1 rounded-b-lg border border-black">Original</div>
               </div>
@@ -602,9 +629,9 @@ export default function TaskDetail() {
             </div>
 
             {transcriptTranslated && transcriptTranslated?.map((oneRow, idx) => (
-              <div className="grid grid-cols-2 w-full tracking-wide gap-2 mt-2" key={idx}>
-                <div className="mb-12">
-                  <div className="flex justify-between text-sm mb-1">
+              <div className="mt-4 grid grid-cols-2 w-full tracking-wide gap-2" key={idx}>
+                <div className="">
+                  <div className="flex flex-wrap justify-between text-sm mb-1 gap-2 w-full">
                     <div className="flex items-center justify-start gap-1">
                       <button className="btn btn-xs btn-outline">{idx}</button>
                       <div className={`btn btn-xs btn-outline
@@ -618,7 +645,7 @@ export default function TaskDetail() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-1">
+                    <div className="flex flex-wrap justify-start md:justify-end gap-1">
                       <button
                         className="btn btn-xs btn-outline"
                         onClick={()=>{
@@ -638,13 +665,13 @@ export default function TaskDetail() {
                     </div>
                   </div>
                   <textarea
-                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full read-only:text-gray-700" readOnly value={transcriptOriginal[idx]?.value}
+                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-40 w-full read-only:text-gray-700" readOnly value={transcriptOriginal[idx]?.value}
                   />
                 </div>
 
-                <div className="mb-12">
-                  <div className="flex justify-between text-sm mb-1">
-                    <div className="flex items-center gap-1">
+                <div className="">
+                  <div className="flex justify-between text-sm mb-1 gap-2 w-full flex-wrap">
+                    <div className="flex flex-wrap items-center gap-1">
                       <input
                         className="input input-xs input-bordered w-[100px]"
                         value={transcriptTranslated[idx]?.start_at}
@@ -664,7 +691,7 @@ export default function TaskDetail() {
                         }}
                       ><Play size={14} /> {transcriptTranslated[idx]?.value.length} chs</button>
                     </div>
-                    <div className="flex justify-end gap-1">
+                    <div className="flex flex-wrap justify-start md:justify-end gap-1">
                       <button className="btn btn-xs btn-outline">{subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at)}s</button>
                       <button className="btn btn-xs btn-outline">{
                         (transcriptTranslated[idx]?.value.length / parseFloat(subtractTime(transcriptTranslated[idx]?.end_at, transcriptTranslated[idx]?.start_at))).toFixed(2)
@@ -688,7 +715,7 @@ export default function TaskDetail() {
                     </div>
                   </div>
                   <textarea
-                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-full w-full"
+                    className="shadow-sm bg-white rounded-lg p-2 text-sm h-40 w-full"
                     value={transcriptTranslated[idx]?.value}
                     onChange={(e)=>OnChangeTranscriptVal(idx, e.target.value)}
                   />
@@ -698,7 +725,7 @@ export default function TaskDetail() {
           </div>
         </div>
 
-        <div className="w-full col-span-4 flex flex-col gap-4">
+        <div className="w-full lg:col-span-4 flex flex-col gap-4">
           <div className="">
             <div className="flex justify-between items-center bg-white p-2 rounded-lg">
               <div className="text-lg flex items-center">
