@@ -101,9 +101,6 @@ export default function TaskDetail() {
 
       <div className="col-span-2 w-full bg-white border border-black p-2 rounded-lg flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center">
-          <Link className="btn btn-primary btn-sm btn-outline mr-2" href={`/tasks/${params?.task_name}/detail`}>
-            <ArrowLeft size={14} /> Back
-          </Link>
           <span className="text-lg font-bold flex items-center"><CodeIcon size={24} className="mr-2" />LOG {params?.task_name}</span>
           {taskDetail?.state_human?.is_running
             ? <div className="badge badge-neutral flex items-center ml-4">
@@ -117,6 +114,9 @@ export default function TaskDetail() {
           </div>}
         </div>
         <div className="flex">
+          <Link className="btn btn-primary btn-sm btn-outline mr-2" href={`/tasks/${params?.task_name}/detail`}>
+            <Edit size={14} /> Editor
+          </Link>
           <button className="btn btn-primary btn-sm btn-outline" onClick={()=>InitializeData()}>
             <RefreshCcw size={14} /> Refresh
           </button>

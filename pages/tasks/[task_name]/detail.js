@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { useRouter } from 'next/router'
 import dynamic from "next/dynamic"
 
-import { LogsIcon, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon, CodeIcon, FileAudio } from "lucide-react"
+import { LogsIcon, ChevronRight, Circle, CircleCheck, Download, Edit, Eye, Globe, LayoutTemplate, Mic, MoreHorizontal, Pencil, Play, Plus, RefreshCcw, Save, Trash, Volume2Icon, CodeIcon, FileAudio, UploadIcon } from "lucide-react"
 import ReactPlayer from "react-player"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
@@ -40,6 +40,9 @@ export default function TaskDetail() {
     voice_pitch: "",
   })
   const [selectedStatus, setSelectedStatus] = useState("initialized")
+  const [uploadParams, setUploadParams] = useState({
+    "title": "", "description": "",
+  })
 
   var originalPlayerRef = useRef(null)
   const [originalPlaying, setOriginalPlaying] = useState(false)
@@ -314,6 +317,30 @@ export default function TaskDetail() {
     } catch (e) { alert(e) }
   }
 
+  async function PostUploadToYoutube() {
+    if (!confirm(`Are you sure want to upload this video to youtube?`)) { return }
+
+    try {
+      const response = await vdubAPI.PostUploadToYoutube("", {}, {
+        "task_name": params.task_name,
+        "title": uploadParams.title,
+        "description": uploadParams.description,
+      })
+      const body = await response.json()
+      if (response.status !== 200) {
+        alert(`Upload to youtube failed: ${JSON.stringify(body)}`)
+        return
+      }
+
+      setUploadParams({...uploadParams,
+        youtube_video_id: body.data.youtube_video_id,
+        youtube_video_link: body.data.youtube_video_link,
+      })
+
+      InitializeData()
+    } catch (e) { alert(e) }
+  }
+
   return (
     <main className="flex flex-col p-4 gap-2">
       {/* <progress className="progress progress-primary w-full" value={1} max="10"></progress> */}
@@ -438,13 +465,13 @@ export default function TaskDetail() {
                 <div className="flex items-center justify-start mt-8 gap-2">
                   <div className="tooltip" data-tip="save the new adjusted transcript.">
                     <button
-                      className="btn btn-primary btn-outline btn-sm"
+                      className="btn btn-primary btn-outline btn-xs"
                       onClick={()=>PostUpdateTranscript()}
                     ><Save size={14} /> Save Transcript</button>
                   </div>
                   <div className="tooltip" data-tip="save the new setting, no process executed.">
                     <button
-                      className="btn btn-primary btn-outline btn-sm"
+                      className="btn btn-primary btn-outline btn-xs"
                       onClick={()=>PatchTaskUpdateSetting()}
                     ><Save size={14} /> Save Setting</button>
                   </div>
@@ -499,8 +526,39 @@ export default function TaskDetail() {
                     <div className="tooltip" data-tip="will shift the transcript to maximize time gap.">
                       <button
                         className="btn btn-primary btn-outline btn-xs"
-                        onClick={()=>PostQuickShiftTranscript()}
+                        onClick={()=>PostQuickShiftTranscript(params.task_name)}
                       ><RefreshCcw size={14} /> Quick Shift Transcript</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full border-b border-solid border-black my-4"></div>
+
+                <div className="flex flex-col gap-4 justify-start text-left">
+                  <div className="flex justify-between items-center">
+                    <span>Upload</span>
+                  </div>
+
+                  <input className="input input-sm input-bordered w-full" placeholder="title"
+                    onChange={(e)=>setUploadParams({...uploadParams, title: e.target.value})}
+                    value={uploadParams.title}
+                  ></input>
+
+                  <input className="input input-sm input-bordered w-full" placeholder="description"
+                    onChange={(e)=>setUploadParams({...uploadParams, description: e.target.value})}
+                    value={uploadParams.description}
+                  ></input>
+
+                  <input className="input input-sm input-bordered w-full" placeholder="youtube video link" readOnly
+                    value={uploadParams.youtube_video_link}
+                  ></input>
+
+                  <div className="flex justify-start gap-2">
+                    <div className="tooltip" data-tip="upload the dubbed video to youtube">
+                      <button
+                        className="btn btn-primary btn-outline btn-xs"
+                        onClick={()=>PostUploadToYoutube()}
+                      ><UploadIcon size={14} /> Upload Youtube</button>
                     </div>
                   </div>
                 </div>
@@ -648,7 +706,7 @@ export default function TaskDetail() {
               </div>
               <div>
                 <a
-                  href={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
+                  href={`${vdubAPI.GenHost()}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
                   className="btn btn-primary btn-xs btn-outline"
                   target="_blank"
                   download
@@ -662,7 +720,7 @@ export default function TaskDetail() {
               {showVideoPlayer && <ReactPlayer
                 ref={translatedPlayerRef}
                 width={"100%"}
-                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
+                url={`${vdubAPI.GenHost()}/vdub/api/dubb/task/${params?.task_name}/video/translated`}
                 playing={translatedPlaying}
                 controls={true}
                 config={{
@@ -671,7 +729,12 @@ export default function TaskDetail() {
                       crossOrigin: "true",
                     },
                     tracks: [
-                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle?sub_type=translated`, srcLang: 'en', default: true}
+                      {
+                        kind: 'subtitles',
+                        src: `${vdubAPI.GenHost()}/vdub/api/dubb/task/${params?.task_name}/video/subtitle?sub_type=translated`,
+                        srcLang: 'en',
+                        default: false,
+                      }
                     ],
                   },
                 }}
@@ -692,7 +755,7 @@ export default function TaskDetail() {
               {showVideoPlayer && <ReactPlayer
                 ref={originalPlayerRef}
                 width={"100%"}
-                url={`${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/original`}
+                url={`${vdubAPI.GenHost()}/vdub/api/dubb/task/${params?.task_name}/video/original`}
                 playing={originalPlaying}
                 controls={true}
                 config={{
@@ -701,7 +764,7 @@ export default function TaskDetail() {
                       crossOrigin: "true",
                     },
                     tracks: [
-                      {kind: 'subtitles', src: `${vdubAPI.VdubHost}/vdub/api/dubb/task/${params?.task_name}/video/subtitle`, srcLang: 'en', default: true}
+                      {kind: 'subtitles', src: `${vdubAPI.GenHost()}/vdub/api/dubb/task/${params?.task_name}/video/subtitle`, srcLang: 'en', default: false}
                     ],
                   },
                 }}
